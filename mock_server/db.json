@@ -1,0 +1,60 @@
+{
+  "items": [
+    {
+      "id": 1,
+      "title": "예시 항목 1",
+      "subtitle": "TODO: 내 앱의 실제 화면에 맞는 예시 문구로 바꾼다",
+      "image": "https://picsum.photos/seed/item1/400/300",
+      "tags": [
+        "예시",
+        "태그A"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "예시 항목 2",
+      "subtitle": "목록 → 상세 → 결과 흐름을 확인하기 위한 샘플 데이터",
+      "image": "https://picsum.photos/seed/item2/400/300",
+      "tags": [
+        "태그B"
+      ]
+    },
+    {
+      "id": 3,
+      "title": "예시 항목 3",
+      "subtitle": "태그가 없는 항목 (빈 값도 화면이 깨지지 않는지 확인)",
+      "image": "https://picsum.photos/seed/item3/400/300",
+      "tags": []
+    },
+    {
+      "id": 4,
+      "title": "예시 항목 4",
+      "subtitle": "넓은 화면(600dp 이상)에서는 격자로 보인다",
+      "image": "https://picsum.photos/seed/item4/400/300",
+      "tags": [
+        "태그A",
+        "태그B"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": 1,
+      "itemId": 1,
+      "text": "예시 메모 1 — 상세 화면 '메모' 탭에 보인다",
+      "date": "2026-10-15"
+    },
+    {
+      "id": 2,
+      "itemId": 1,
+      "text": "예시 메모 2",
+      "date": "2026-10-16"
+    },
+    {
+      "id": 3,
+      "itemId": 2,
+      "text": "예시 메모 3",
+      "date": "2026-10-17"
+    }
+  ]
+}
