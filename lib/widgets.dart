@@ -114,3 +114,15 @@ class NetImage extends StatelessWidget {
     );
   }
 }
+
+/// 가격 표시 — 580000 → "580,000원", 0 → "가격 없음" (표시 형식만 바꾼다. 계산 아님)
+String formatWon(int price) {
+  if (price <= 0) return '가격 없음';
+  final digits = '$price';
+  final buf = StringBuffer();
+  for (var i = 0; i < digits.length; i++) {
+    if (i > 0 && (digits.length - i) % 3 == 0) buf.write(',');
+    buf.write(digits[i]);
+  }
+  return '$buf원';
+}

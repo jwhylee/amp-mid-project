@@ -1,60 +1,467 @@
 {
-  "items": [
+  "notices": [
     {
       "id": 1,
-      "title": "예시 항목 1",
-      "subtitle": "TODO: 내 앱의 실제 화면에 맞는 예시 문구로 바꾼다",
-      "image": "https://picsum.photos/seed/item1/400/300",
-      "tags": [
-        "예시",
-        "태그A"
-      ]
+      "text": "[공지] 거래 전 판매자 정보를 꼭 확인하세요"
     },
     {
       "id": 2,
-      "title": "예시 항목 2",
-      "subtitle": "목록 → 상세 → 결과 흐름을 확인하기 위한 샘플 데이터",
-      "image": "https://picsum.photos/seed/item2/400/300",
-      "tags": [
-        "태그B"
-      ]
+      "text": "[공지] 11월 정기 점검 안내"
     },
     {
       "id": 3,
-      "title": "예시 항목 3",
-      "subtitle": "태그가 없는 항목 (빈 값도 화면이 깨지지 않는지 확인)",
-      "image": "https://picsum.photos/seed/item3/400/300",
-      "tags": []
+      "text": "[이벤트] 합주실 첫 이용 할인"
+    }
+  ],
+  "posts": [
+    {
+      "id": 1,
+      "board": "market",
+      "category": "일렉기타",
+      "brand": "Fender",
+      "model": "Player Stratocaster",
+      "title": "펜더 멕시코 플레이어 스트랫 선버스트",
+      "price": 580000,
+      "region": "서울 마포",
+      "body": "2023년 구매, 집에서만 쳤습니다. 하드케이스 포함.",
+      "specs": [
+        [
+          "바디",
+          "앨더"
+        ],
+        [
+          "넥",
+          "메이플 C셰입"
+        ],
+        [
+          "픽업",
+          "SSS 싱글"
+        ]
+      ],
+      "image": "https://picsum.photos/seed/mubase1/400/300",
+      "createdAt": "2026-10-22"
+    },
+    {
+      "id": 2,
+      "board": "market",
+      "category": "일렉기타",
+      "brand": "Fender",
+      "model": "Traditional 70s Telecaster",
+      "title": "펜더 재팬 텔레캐스터 TL-71 내추럴",
+      "price": 640000,
+      "region": "서울 성동",
+      "body": "프렛 상태 좋아요. 직거래 선호.",
+      "specs": [
+        [
+          "바디",
+          "애쉬"
+        ],
+        [
+          "넥",
+          "메이플"
+        ],
+        [
+          "픽업",
+          "SS 싱글"
+        ]
+      ],
+      "image": "https://picsum.photos/seed/mubase2/400/300",
+      "createdAt": "2026-10-23"
+    },
+    {
+      "id": 3,
+      "board": "market",
+      "category": "앰프",
+      "brand": "Fender",
+      "model": "Blues Junior IV",
+      "title": "펜더 블루스 주니어 IV 앰프",
+      "price": 520000,
+      "region": "서울 강남",
+      "body": "진공관 교체 1회. 합주실 사용 X.",
+      "specs": [
+        [
+          "출력",
+          "15W"
+        ],
+        [
+          "스피커",
+          "12인치"
+        ]
+      ],
+      "image": "https://picsum.photos/seed/mubase3/400/300",
+      "createdAt": "2026-10-24"
     },
     {
       "id": 4,
-      "title": "예시 항목 4",
-      "subtitle": "넓은 화면(600dp 이상)에서는 격자로 보인다",
-      "image": "https://picsum.photos/seed/item4/400/300",
-      "tags": [
-        "태그A",
-        "태그B"
-      ]
+      "board": "market",
+      "category": "일렉기타",
+      "brand": "ESP",
+      "model": "LTD EC-256",
+      "title": "ESP LTD EC-256 블랙",
+      "price": 450000,
+      "region": "경기 성남",
+      "body": "소리 문제 없음. 스크래치 약간.",
+      "specs": [
+        [
+          "바디",
+          "마호가니"
+        ],
+        [
+          "픽업",
+          "험버커 2"
+        ]
+      ],
+      "image": "https://picsum.photos/seed/mubase4/400/300",
+      "createdAt": "2026-10-25"
+    },
+    {
+      "id": 5,
+      "board": "market",
+      "category": "일렉기타",
+      "brand": "Gibson",
+      "model": "Les Paul Studio",
+      "title": "깁슨 레스폴 스튜디오 와인레드",
+      "price": 1650000,
+      "region": "서울 마포",
+      "body": "2019년식, 셋업 완료.",
+      "specs": [
+        [
+          "바디",
+          "마호가니"
+        ],
+        [
+          "픽업",
+          "490R/498T"
+        ]
+      ],
+      "image": "https://picsum.photos/seed/mubase5/400/300",
+      "createdAt": "2026-10-26"
+    },
+    {
+      "id": 6,
+      "board": "market",
+      "category": "베이스",
+      "brand": "Fender",
+      "model": "Player Jazz Bass",
+      "title": "펜더 재즈베이스 플레이어 3톤",
+      "price": 690000,
+      "region": "인천 부평",
+      "body": "줄 교체한 지 2주.",
+      "specs": [
+        [
+          "바디",
+          "앨더"
+        ],
+        [
+          "픽업",
+          "JJ 싱글"
+        ]
+      ],
+      "image": "https://picsum.photos/seed/mubase6/400/300",
+      "createdAt": "2026-10-27"
+    },
+    {
+      "id": 7,
+      "board": "studio",
+      "category": "합주실",
+      "brand": "",
+      "model": "",
+      "title": "[강남] 주말 드럼·앰프 완비 합주실 (A룸)",
+      "price": 18000,
+      "region": "서울 강남",
+      "body": "시간당 18,000원. 주말 오전 할인.",
+      "specs": [],
+      "image": "https://picsum.photos/seed/mubase7/400/300",
+      "createdAt": "2026-10-21"
+    },
+    {
+      "id": 8,
+      "board": "studio",
+      "category": "합주실",
+      "brand": "",
+      "model": "",
+      "title": "[홍대] 소규모 밴드 합주실 B룸",
+      "price": 15000,
+      "region": "서울 마포",
+      "body": "4인 기준, 마샬·펜더 앰프 보유.",
+      "specs": [],
+      "image": "https://picsum.photos/seed/mubase8/400/300",
+      "createdAt": "2026-10-22"
+    },
+    {
+      "id": 9,
+      "board": "lesson",
+      "category": "레슨",
+      "brand": "",
+      "model": "",
+      "title": "초보 베이스 1:1 레슨 (주 1회)",
+      "price": 160000,
+      "region": "서울 성동",
+      "body": "악보 못 읽어도 됩니다. 월 4회.",
+      "specs": [],
+      "image": "https://picsum.photos/seed/mubase9/400/300",
+      "createdAt": "2026-10-23"
+    },
+    {
+      "id": 10,
+      "board": "lesson",
+      "category": "레슨",
+      "brand": "",
+      "model": "",
+      "title": "일렉기타 리듬·코드 레슨",
+      "price": 180000,
+      "region": "온라인",
+      "body": "화상 레슨 가능.",
+      "specs": [],
+      "image": "https://picsum.photos/seed/mubase10/400/300",
+      "createdAt": "2026-10-24"
+    },
+    {
+      "id": 11,
+      "board": "recruit",
+      "category": "구인",
+      "brand": "",
+      "model": "",
+      "title": "직장인 밴드 기타 1명 구해요 (주말 합주)",
+      "price": 0,
+      "region": "서울 마포",
+      "body": "모던록 커버, 토요일 오후.",
+      "specs": [],
+      "image": "https://picsum.photos/seed/mubase11/400/300",
+      "createdAt": "2026-10-25"
+    },
+    {
+      "id": 12,
+      "board": "show",
+      "category": "공연",
+      "brand": "",
+      "model": "",
+      "title": "11월 둘째 주 홍대 클럽 공연 라인업",
+      "price": 20000,
+      "region": "서울 마포",
+      "body": "4팀 출연, 현장 예매.",
+      "specs": [],
+      "image": "https://picsum.photos/seed/mubase12/400/300",
+      "createdAt": "2026-10-26"
     }
   ],
-  "notes": [
+  "aiResponses": [
     {
       "id": 1,
-      "itemId": 1,
-      "text": "예시 메모 1 — 상세 화면 '메모' 탭에 보인다",
-      "date": "2026-10-15"
+      "query": "60만 원 이하 펜더 일렉, 앰프 빼고",
+      "conditions": [
+        {
+          "type": "category",
+          "label": "일렉기타"
+        },
+        {
+          "type": "brand",
+          "label": "펜더"
+        },
+        {
+          "type": "price",
+          "label": "60만 원 이하"
+        },
+        {
+          "type": "region",
+          "label": "서울"
+        },
+        {
+          "type": "exclude",
+          "label": "앰프"
+        }
+      ],
+      "results": [
+        {
+          "postId": 1,
+          "board": "장터",
+          "title": "펜더 멕시코 플레이어 스트랫 선버스트",
+          "price": 580000,
+          "reasons": [
+            "일렉기타",
+            "펜더",
+            "58만 원",
+            "앰프 제외"
+          ]
+        },
+        {
+          "postId": 2,
+          "board": "장터",
+          "title": "펜더 재팬 텔레캐스터 TL-71 내추럴",
+          "price": 640000,
+          "reasons": [
+            "일렉기타",
+            "펜더",
+            "예산보다 4만 원 높음"
+          ]
+        },
+        {
+          "postId": 8,
+          "board": "합주실",
+          "title": "[홍대] 소규모 밴드 합주실 B룸",
+          "price": 15000,
+          "reasons": [
+            "같은 지역(마포)",
+            "주말 합주"
+          ]
+        }
+      ],
+      "advice": "예산 60만 원이면 1번 매물(58만 원)이 시세 평균보다 2만 원 싸요. 2번 텔레캐스터는 4만 원 넘지만 상태 체크 결과가 좋아요. 앰프는 빼고 찾았어요."
     },
     {
       "id": 2,
-      "itemId": 1,
-      "text": "예시 메모 2",
-      "date": "2026-10-16"
+      "query": "강남 주말 드럼 합주실 1만 원 이하",
+      "conditions": [
+        {
+          "type": "category",
+          "label": "합주실"
+        },
+        {
+          "type": "region",
+          "label": "강남"
+        },
+        {
+          "type": "price",
+          "label": "시간당 1만 원 이하"
+        }
+      ],
+      "results": [],
+      "advice": "조건에 맞는 합주실이 아직 없어요. 가격 조건을 빼거나 지역을 넓혀 보세요."
+    }
+  ],
+  "priceInfo": [
+    {
+      "postId": 1,
+      "low": 480000,
+      "avg": 560000,
+      "high": 650000
+    },
+    {
+      "postId": 2,
+      "low": 550000,
+      "avg": 620000,
+      "high": 720000
+    },
+    {
+      "postId": 3,
+      "low": 450000,
+      "avg": 530000,
+      "high": 600000
+    },
+    {
+      "postId": 4,
+      "low": 380000,
+      "avg": 440000,
+      "high": 520000
+    },
+    {
+      "postId": 5,
+      "low": 1450000,
+      "avg": 1600000,
+      "high": 1800000
+    },
+    {
+      "postId": 6,
+      "low": 600000,
+      "avg": 680000,
+      "high": 780000
+    }
+  ],
+  "usageReviews": [
+    {
+      "id": 1,
+      "postId": 1,
+      "rating": 5,
+      "text": "싱글 픽업 소리가 맑고 넥이 편해요"
+    },
+    {
+      "id": 2,
+      "postId": 1,
+      "rating": 4,
+      "text": "입문 다음 단계로 무난한 모델"
     },
     {
       "id": 3,
-      "itemId": 2,
-      "text": "예시 메모 3",
-      "date": "2026-10-17"
+      "postId": 2,
+      "rating": 5,
+      "text": "텔레 특유의 쨍한 소리, 합주에서 잘 들려요"
+    },
+    {
+      "id": 4,
+      "postId": 3,
+      "rating": 4,
+      "text": "집에서 쓰기엔 볼륨이 커요"
+    },
+    {
+      "id": 5,
+      "postId": 6,
+      "rating": 5,
+      "text": "슬랩도 잘 붙는 재즈베이스"
+    }
+  ],
+  "conditionChecks": [
+    {
+      "id": 1,
+      "postId": 1,
+      "image": "https://picsum.photos/seed/mubase1/400/300",
+      "items": [
+        {
+          "no": 1,
+          "part": "바디 스크래치",
+          "level": "보통",
+          "note": "뒷판 작은 스크래치 2곳"
+        },
+        {
+          "no": 2,
+          "part": "프렛 마모",
+          "level": "좋음",
+          "note": "1–5번 프렛 마모 적음"
+        },
+        {
+          "no": 3,
+          "part": "잭 소켓",
+          "level": "확인 필요",
+          "note": "사진으로 판단 어려움 — 판매자에게 물어보기"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "postId": 2,
+      "image": "https://picsum.photos/seed/mubase2/400/300",
+      "items": [
+        {
+          "no": 1,
+          "part": "바디",
+          "level": "좋음",
+          "note": "눈에 띄는 손상 없음"
+        },
+        {
+          "no": 2,
+          "part": "넥 휨",
+          "level": "좋음",
+          "note": "측면 사진상 곧음"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "postId": 4,
+      "image": "https://picsum.photos/seed/mubase4/400/300",
+      "items": [
+        {
+          "no": 1,
+          "part": "바디 스크래치",
+          "level": "보통",
+          "note": "앞판 잔기스"
+        },
+        {
+          "no": 2,
+          "part": "노브",
+          "level": "확인 필요",
+          "note": "한 개 색이 다름 — 교체 여부 확인"
+        }
+      ]
     }
   ]
 }

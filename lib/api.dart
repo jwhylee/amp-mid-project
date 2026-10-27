@@ -1,5 +1,6 @@
 // 데이터 가져오기 — GET만 쓴다 (중간고사 안내 5장: POST/PUT/DELETE·저장은 감점)
-// 화면 코드는 이 파일의 fetchItems() / fetchNotes()만 부른다. (관심사 분리)
+// 화면 코드는 이 파일의 fetch…() 함수만 부른다. (관심사 분리)
+// 모든 경로는 json-server의 배열 응답이다. 하나만 필요한 것도 쿼리(?id=1)로 받아 첫 항목을 쓴다.
 //
 // 서버 주소 (코드 수정 없이 실행할 때 바꾼다):
 //   기본값  Android 에뮬레이터 → http://10.0.2.2:3000   그 외(Chrome·macOS·iOS 시뮬레이터) → http://localhost:3000
@@ -70,20 +71,53 @@ Future<List<Object?>> _getList(String path) async {
   return decoded;
 }
 
-// TODO: db.json의 최상위 키 이름을 바꾸면 아래 경로('items', 'notes')도 같이 바꾼다.
-
-/// A 목록 화면: GET /items
-Future<List<Item>> fetchItems() async {
-  final list = await _getList('items');
-  return list.map(Item.fromJson).nonNulls.toList();
+/// A 통합 홈 게시판 탭: GET /posts?board=market (market · studio · lesson · recruit · show)
+Future<List<Post>> fetchPosts(String board) async {
+  final list = await _getList('posts?board=$board');
+  return list.map(Post.fromJson).nonNulls.toList();
 }
 
-/// B 상세 화면 '메모' 탭: GET /notes?itemId=1 (json-server의 필터 — 여전히 GET)
-Future<List<Note>> fetchNotes(int itemId) async {
-  final list = await _getList('notes?itemId=$itemId');
-  return list.map(Note.fromJson).nonNulls.toList();
+/// C 추천 결과 → B 게시글 상세: GET /posts?id=1 — 없으면 null
+Future<Post?> fetchPost(int id) async {
+  final list = await _getList('posts?id=$id');
+  return list.map(Post.fromJson).nonNulls.firstOrNull;
+}
+
+/// A 통합 홈 공지 접기 줄: GET /notices
+Future<List<Notice>> fetchNotices() async {
+  final list = await _getList('notices');
+  return list.map(Notice.fromJson).nonNulls.toList();
+}
+
+/// C AI 검색 확인 시트: GET /aiResponses?id=1 — 미리 쓴 응답. 없으면 null(빈 상태)
+Future<AiResponse?> fetchAiResponse(int id) async {
+  final list = await _getList('aiResponses?id=$id');
+  return list.map(AiResponse.fromJson).nonNulls.firstOrNull;
+}
+
+/// B 게시글 상세 '시세' 탭: GET /priceInfo?postId=1 — 장터 글이 아니면 null
+Future<PriceInfo?> fetchPriceInfo(int postId) async {
+  final list = await _getList('priceInfo?postId=$postId');
+  return list.map(PriceInfo.fromJson).nonNulls.firstOrNull;
+}
+
+/// B 게시글 상세 'AI 상태 체크' 탭: GET /conditionChecks?postId=1 — 미리 쓴 결과. 없으면 null
+Future<ConditionCheck?> fetchConditionCheck(int postId) async {
+  final list = await _getList('conditionChecks?postId=$postId');
+  return list.map(ConditionCheck.fromJson).nonNulls.firstOrNull;
+}
+
+/// B 게시글 상세 '사용 후기' 탭: GET /usageReviews?postId=1
+Future<List<UsageReview>> fetchUsageReviews(int postId) async {
+  final list = await _getList('usageReviews?postId=$postId');
+  return list.map(UsageReview.fromJson).nonNulls.toList();
 }
 
 /// 화면이 데이터를 받는 함수 모양 — 테스트에서는 가짜 함수를 넣는다.
-typedef ItemsLoader = Future<List<Item>> Function();
-typedef NotesLoader = Future<List<Note>> Function(int itemId);
+typedef PostsLoader = Future<List<Post>> Function(String board);
+typedef PostLoader = Future<Post?> Function(int id);
+typedef NoticesLoader = Future<List<Notice>> Function();
+typedef AiResponseLoader = Future<AiResponse?> Function(int id);
+typedef ConditionCheckLoader = Future<ConditionCheck?> Function(int postId);
+typedef PriceInfoLoader = Future<PriceInfo?> Function(int postId);
+typedef UsageReviewsLoader = Future<List<UsageReview>> Function(int postId);

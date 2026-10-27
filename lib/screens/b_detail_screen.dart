@@ -1,64 +1,232 @@
-// 화면 B: 상세 — TODO: 기획 문서의 화면 이름으로 바꾼다 (예: "○○ 상세")
+// 화면 B: 게시글 상세 (GET /conditionChecks?postId= · /priceInfo?postId= · /usageReviews?postId=)
 //
-// ┌──────── 디자인 가이드 대응표: B 상세 ───────────────────────────────────────┐
-// │ 번호 │ Flutter 위젯명                  │ 비즈니스 명칭(한글)  │ 원칙(P번호)    │
-// │ B-1  │ AppBar + BackButton             │ TODO: 상세 제목줄    │ P03 통제·자유  │
-// │ B-2  │ TabBar + TabBarView             │ TODO: 정보|메모 탭   │ P06 재인(예)   │
-// │ B-3  │ NetImage + Text(titleLarge)     │ TODO: 대표 사진·이름 │ P02 실세계(예) │
-// │ B-4  │ Wrap(Chip …)                    │ TODO: 태그 칩        │ P08 미니멀(예) │
-// │ B-5  │ OutlinedButton → SnackBar       │ TODO: 저장 버튼(가짜)│ STATE 표시만   │
-// │ B-6  │ FilledButton → 모달 시트        │ TODO: 결과 보기 버튼 │ P07 효율성(예) │
-// │ B-7  │ FutureBuilder(GET /notes)       │ TODO: 메모 목록      │ P01 · P09      │
-// └────────────────────────────────────────────────────────────────────────────┘
-// 전환: A → B 쌓기(push) · B 안에서 옆으로(tab) · B → C 덮기(modal)
+// ── 디자인 가이드 대응표: 화면 B — 게시글 상세 (docs/디자인가이드.md 3장과 같게) ─────────────
+// | 번호 | Flutter 위젯명 | 비즈니스 명칭(한글) | 정보 전달 기준 | 원칙 | 편의성 포인트 |
+// |---|---|---|---|---|---|
+// | B-1 | AppBar · BackButton | 뒤로가기 바 | 왼쪽 위에 항상 | P03 · #8 #9 | 처음부터 다시 들어오지 않아도 됨 |
+// | B-2 | Image · Text | 게시글 머리 | 사진 → 제목 → 가격(가장 크게) → 지역 | P08 | 스크롤 없이 핵심 확인 |
+// | B-3 | Chip | 내 조건과 맞는 이유 | 머리 바로 아래 · C에서 왔을 때만 | P01 | 왜 추천됐는지 다시 확인 |
+// | B-4 | TabBar · TabBarView | 판단 정보 탭 | 글 내용 · AI 상태 체크 · 시세 · 사양 · 후기 (장터 글만 5탭, 다른 게시판은 글 내용 한 탭) | P07 | 시세 · 상태 · 후기를 앱 밖에서 안 찾음 |
+// | B-5 | Row · LinearProgressIndicator | 시세 범위 막대 | 최저 · 평균 · 최고 + 이 매물 위치 | P07 | 비싼지 싼지 바로 판단 |
+// | B-6 | Stack · Image · ListTile | AI 상태 체크 | 사진 위 번호 → 항목별 상태(좋음 · 보통 · 확인 필요) | P01 · #7 | 사진만 보고 혼자 상태를 짐작하지 않음 |
+// | B-7 | FilledButton → showDialog | 판매자 연락 버튼 | 화면 아래 고정 | P03 · 취소 가능 | 잘못 눌러도 취소 가능 |
+// ────────────────────────────────────────────────────────────────────────────────────────
+// 전환: A → B · C → B 쌓기(Navigator.push) · B 안에서 옆으로(TabBar) · B-7 덮기(showDialog). 뒤로 가면 온 곳(홈 또는 시트)으로.
+// 적응형: 넓은 화면에서 본문 최대 너비 720dp로 가운데 정렬.
+// 상태관리 포인트(가이드 5장): S6 선택된 판단 정보 탭 (AI 상태 체크 포함) → `grep -rn "STATE:" lib`
+//
+// ⚠ AI 상태 체크 · 시세 · 사양 · 후기는 미리 정한 데이터를 그대로 보여 준다.
+//   이미지를 분석하거나 시세를 계산하거나 판매자에게 실제로 연락하지 않는다.
 import 'package:flutter/material.dart';
 
 import '../api.dart';
 import '../models.dart';
 import '../widgets.dart';
-import 'c_result_sheet.dart';
 
-class DetailScreen extends StatelessWidget {
-  const DetailScreen({
+/// 넓은 화면에서 본문 최대 너비 (가이드 1장 적응형)
+const detailMaxWidth = 720.0;
+
+class PostDetailScreen extends StatelessWidget {
+  const PostDetailScreen({
     super.key,
-    required this.item,
-    this.loadNotes = fetchNotes,
+    required this.post,
+    this.reasons = const [],
+    this.loadConditionCheck = fetchConditionCheck,
+    this.loadPriceInfo = fetchPriceInfo,
+    this.loadUsageReviews = fetchUsageReviews,
   });
 
-  final Item item;
-  final NotesLoader loadNotes;
+  final Post post;
+
+  /// C-5 추천 결과의 맞는 이유 — A에서 바로 들어오면 비어 있다 (B-3을 그리지 않음)
+  final List<String> reasons;
+
+  /// 데이터를 가져오는 함수 — 앱은 기본값(GET), 테스트는 가짜 함수를 넣는다.
+  final ConditionCheckLoader loadConditionCheck;
+  final PriceInfoLoader loadPriceInfo;
+  final UsageReviewsLoader loadUsageReviews;
+
+  /// 장터 글만 AI 상태 체크 · 시세 · 사양 · 후기 탭이 있다
+  bool get _isMarket => post.board == 'market';
 
   @override
   Widget build(BuildContext context) {
-    // 옆으로(tab) 예시: DefaultTabController가 탭 선택을 화면 안에서만 처리한다 (허용)
+    final tabs = [
+      (label: '글 내용', view: _BodyTab(post: post)),
+      if (_isMarket) ...[
+        (
+          label: 'AI 상태 체크',
+          view: _ConditionCheckTab(postId: post.id, load: loadConditionCheck),
+        ),
+        (label: '시세', view: _PriceTab(post: post, load: loadPriceInfo)),
+        (label: '사양', view: _SpecTab(post: post)),
+        (
+          label: '후기',
+          view: _ReviewTab(postId: post.id, load: loadUsageReviews),
+        ),
+      ],
+    ];
     return DefaultTabController(
-      length: 2,
+      length: tabs.length,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(item.title), // B-1 (뒤로 버튼 자동)
-          bottom: const TabBar(
-            // B-2
-            tabs: [
-              Tab(text: '정보'), // TODO: 탭 이름 = 비즈니스 명칭
-              Tab(text: '메모'),
-            ],
+          leading: const BackButton(),
+          title: Text(boardLabel(post.board)),
+        ), // B-1 P03
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: detailMaxWidth),
+            child: NestedScrollView(
+              headerSliverBuilder: (context, _) => [
+                SliverToBoxAdapter(child: _PostHeader(post: post)),
+                if (reasons.isNotEmpty)
+                  SliverToBoxAdapter(child: _MatchReasons(reasons: reasons)),
+                SliverToBoxAdapter(
+                  // STATE: S6 선택된 판단 정보 탭 (AI 상태 체크 포함) → B-4 · B-6 (DefaultTabController가 화면 안에서만 처리)
+                  child: TabBar(
+                    isScrollable: tabs.length > 1,
+                    tabAlignment: tabs.length > 1 ? TabAlignment.start : null,
+                    tabs: [for (final t in tabs) Tab(text: t.label)],
+                  ), // B-4 P07
+                ),
+              ],
+              body: TabBarView(children: [for (final t in tabs) t.view]),
+            ),
           ),
         ),
-        body: TabBarView(
-          children: [
-            _InfoTab(item: item),
-            _NotesTab(itemId: item.id, load: loadNotes),
-          ],
+        bottomNavigationBar: SafeArea(
+          child: Center(
+            heightFactor: 1,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: detailMaxWidth),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () => _contactSeller(context),
+                    icon: const Icon(Icons.chat_bubble_outline),
+                    label: const Text('판매자에게 연락하기'),
+                  ), // B-7 P03
+                ),
+              ),
+            ),
+          ),
         ),
+      ),
+    );
+  }
+
+  /// B-7 확인 창 — 취소할 수 있다. 확인해도 실제 연락 · 채팅은 없다
+  Future<void> _contactSeller(BuildContext context) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('판매자 연락'),
+        content: const Text('판매자에게 연락할까요? (데모: 실제 연락은 되지 않습니다)'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    ); // B-7 P03 취소 가능
+    if (ok != true || !context.mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('데모 화면입니다 — 실제로 연락하지 않습니다.')));
+  }
+}
+
+/// B-2 게시글 머리 — 사진 → 제목 → 가격(가장 크게) → 지역
+class _PostHeader extends StatelessWidget {
+  const _PostHeader({required this.post});
+
+  final Post post;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: NetImage(post.image),
+            ),
+          ), // B-2 P08
+          const SizedBox(height: 12),
+          Text(post.title, style: text.titleLarge),
+          const SizedBox(height: 4),
+          Text(
+            formatWon(post.price),
+            style: text.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+          ), // B-2 P08 가격 가장 크게
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(
+                Icons.place_outlined,
+                size: 16,
+                color: colors.onSurfaceVariant,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                post.region,
+                style: text.bodyMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
-class _InfoTab extends StatelessWidget {
-  const _InfoTab({required this.item});
+/// B-3 내 조건과 맞는 이유 — C-5에서 들어왔을 때만 보인다
+class _MatchReasons extends StatelessWidget {
+  const _MatchReasons({required this.reasons});
 
-  final Item item;
+  final List<String> reasons;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: [
+          for (final r in reasons)
+            Chip(
+              avatar: Icon(Icons.check, size: 16, color: colors.primary),
+              label: Text(r),
+              visualDensity: VisualDensity.compact,
+            ),
+        ],
+      ), // B-3 P01
+    );
+  }
+}
+
+/// B-4 '글 내용' 탭
+class _BodyTab extends StatelessWidget {
+  const _BodyTab({required this.post});
+
+  final Post post;
 
   @override
   Widget build(BuildContext context) {
@@ -66,95 +234,308 @@ class _InfoTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: AspectRatio(aspectRatio: 16 / 9, child: NetImage(item.image)),
-        ), // B-3
-        const SizedBox(height: 16),
-        Text(item.title, style: text.titleLarge), // B-3
-        const SizedBox(height: 4),
-        Text(item.subtitle, style: text.bodyMedium),
+        Text(post.body, style: text.bodyLarge),
         const SizedBox(height: 12),
-        if (item.tags.isNotEmpty)
-          Wrap(
-            // B-4
-            spacing: 6,
-            runSpacing: 6,
-            children: [for (final t in item.tags) Chip(label: Text(t))],
+        Text(
+          '작성일 ${post.createdAt}',
+          style: text.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-        const SizedBox(height: 24),
-        // STATE: 저장(즐겨찾기) 여부 → B-5 버튼 모양, A-2 카드 표시 — v2 이후 상태관리로 구현 (지금은 표시만)
-        //   실제로 저장하지 않는다(영구 저장은 감점). 누르면 SnackBar로 "보이기만" 한다.
-        OutlinedButton.icon(
-          // B-5
-          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('예시 화면입니다 — 실제로 저장하지 않습니다.')),
-          ),
-          icon: const Icon(Icons.bookmark_border),
-          label: const Text('저장 (예시)'),
-        ),
-        const SizedBox(height: 8),
-        FilledButton.icon(
-          // B-6 P07 — 덮기(modal) 예시
-          onPressed: () => ResultSheet.show(context, item),
-          icon: const Icon(Icons.auto_awesome),
-          label: const Text('결과 보기'),
         ),
       ],
     );
   }
 }
 
-/// '메모' 탭 — 두 번째 GET 예시 (GET /notes?itemId=…)
-class _NotesTab extends StatefulWidget {
-  const _NotesTab({required this.itemId, required this.load});
+/// B-4 'AI 상태 체크' 탭 — GET /conditionChecks?postId=
+class _ConditionCheckTab extends StatefulWidget {
+  const _ConditionCheckTab({required this.postId, required this.load});
 
-  final int itemId;
-  final NotesLoader load;
+  final int postId;
+  final ConditionCheckLoader load;
 
   @override
-  State<_NotesTab> createState() => _NotesTabState();
+  State<_ConditionCheckTab> createState() => _ConditionCheckTabState();
 }
 
-class _NotesTabState extends State<_NotesTab> {
-  late Future<List<Note>> _future = widget.load(widget.itemId);
+class _ConditionCheckTabState extends State<_ConditionCheckTab> {
+  late Future<ConditionCheck?> _future = widget.load(widget.postId);
 
   void _retry() {
     setState(() {
-      _future = widget.load(widget.itemId);
+      _future = widget.load(widget.postId);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Note>>(
+    return FutureBuilder<ConditionCheck?>(
       future: _future,
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
-          return const LoadingView(label: '메모를 불러오는 중…'); // B-7 P01
+          return const LoadingView(label: 'AI 상태 체크를 불러오는 중…');
         }
         if (snap.hasError) {
           return ErrorView(
-            title: '메모를 불러오지 못했습니다.',
+            title: 'AI 상태 체크를 불러오지 못했습니다.',
             message: '${snap.error}',
             onRetry: _retry,
-          ); // B-7 P09
+          );
         }
-        final notes = snap.data ?? const <Note>[];
-        if (notes.isEmpty) {
-          return const EmptyView(message: '아직 메모가 없습니다.'); // B-7 P01
+        final check = snap.data;
+        if (check == null || check.items.isEmpty) {
+          return const EmptyView(message: '이 매물은 아직 AI 상태 체크 결과가 없습니다.');
+        }
+        return ConditionCheckView(check: check);
+      },
+    );
+  }
+}
+
+/// B-6 AI 상태 체크 — 사진 위 번호 → 항목별 상태(좋음 · 보통 · 확인 필요).
+/// 결과는 db.json conditionChecks에 미리 써 둔 것 — 이미지를 분석하지 않는다.
+/// 번호를 찍을 좌표 데이터가 없으므로 사진 왼쪽 위에 번호를 모아 올린다(위치를 지어내지 않음).
+class ConditionCheckView extends StatelessWidget {
+  const ConditionCheckView({super.key, required this.check});
+
+  final ConditionCheck check;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    Color levelColor(String level) => switch (level) {
+      '좋음' => colors.primary,
+      '보통' => colors.tertiary,
+      _ => colors.error, // 확인 필요
+    };
+    Widget badge(ConditionCheckItem item) => CircleAvatar(
+      radius: 14,
+      backgroundColor: levelColor(item.level),
+      child: Text(
+        '${item.no}',
+        style: TextStyle(color: colors.onPrimary, fontWeight: FontWeight.bold),
+      ),
+    );
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: AspectRatio(
+            aspectRatio: 4 / 3,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                NetImage(check.image),
+                Positioned(
+                  left: 8,
+                  top: 8,
+                  child: Wrap(
+                    spacing: 6,
+                    children: [for (final item in check.items) badge(item)],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ), // B-6 P01 사진 위 번호
+        const SizedBox(height: 8),
+        for (final item in check.items)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: badge(item),
+            title: Text('${item.part} — ${item.level}'),
+            subtitle: Text(item.note),
+            trailing: Icon(
+              item.level == '좋음'
+                  ? Icons.check_circle_outline
+                  : item.level == '보통'
+                  ? Icons.info_outline
+                  : Icons.help_outline,
+              color: levelColor(item.level),
+            ),
+          ), // B-6 P01 항목별 상태
+      ],
+    );
+  }
+}
+
+/// B-4 '시세' 탭 — GET /priceInfo?postId=
+class _PriceTab extends StatefulWidget {
+  const _PriceTab({required this.post, required this.load});
+
+  final Post post;
+  final PriceInfoLoader load;
+
+  @override
+  State<_PriceTab> createState() => _PriceTabState();
+}
+
+class _PriceTabState extends State<_PriceTab> {
+  late Future<PriceInfo?> _future = widget.load(widget.post.id);
+
+  void _retry() {
+    setState(() {
+      _future = widget.load(widget.post.id);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<PriceInfo?>(
+      future: _future,
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const LoadingView(label: '시세를 불러오는 중…');
+        }
+        if (snap.hasError) {
+          return ErrorView(
+            title: '시세를 불러오지 못했습니다.',
+            message: '${snap.error}',
+            onRetry: _retry,
+          );
+        }
+        final info = snap.data;
+        if (info == null) {
+          return const EmptyView(message: '이 매물의 시세 정보가 아직 없습니다.');
+        }
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [PriceRangeBar(info: info, price: widget.post.price)],
+        );
+      },
+    );
+  }
+}
+
+/// B-5 시세 범위 막대 — 최저 · 평균 · 최고 + 이 매물 위치.
+/// 시세 값은 미리 정한 데이터 그대로이고, 막대 위 위치(비율)만 그리기 위해 정한다.
+class PriceRangeBar extends StatelessWidget {
+  const PriceRangeBar({super.key, required this.info, required this.price});
+
+  final PriceInfo info;
+  final int price;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final span = info.high - info.low;
+    final position = span <= 0
+        ? 0.5
+        : ((price - info.low) / span).clamp(0.0, 1.0);
+    Widget label(String name, int value) => Column(
+      children: [
+        Text(name, style: text.labelMedium),
+        Text(formatWon(value), style: text.bodyMedium),
+      ],
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('이 매물 ${formatWon(price)}', style: text.titleMedium),
+        const SizedBox(height: 12),
+        LinearProgressIndicator(
+          value: position,
+          minHeight: 12,
+          borderRadius: BorderRadius.circular(6),
+          semanticsLabel: '시세 범위 안 이 매물 위치',
+        ), // B-5 P07
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            label('최저', info.low),
+            label('평균', info.avg),
+            label('최고', info.high),
+          ],
+        ), // B-5 P07
+      ],
+    );
+  }
+}
+
+/// B-4 '사양' 탭 — 브랜드 · 모델 · specs
+class _SpecTab extends StatelessWidget {
+  const _SpecTab({required this.post});
+
+  final Post post;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = [
+      if (post.brand.isNotEmpty) ('브랜드', post.brand),
+      if (post.model.isNotEmpty) ('모델', post.model),
+      ...post.specs,
+    ];
+    if (rows.isEmpty) {
+      return const EmptyView(message: '등록된 사양이 없습니다.');
+    }
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      children: [
+        for (final (name, value) in rows)
+          ListTile(dense: true, title: Text(name), trailing: Text(value)),
+      ],
+    );
+  }
+}
+
+/// B-4 '후기' 탭 — GET /usageReviews?postId= · 별점 → 한 줄 후기
+class _ReviewTab extends StatefulWidget {
+  const _ReviewTab({required this.postId, required this.load});
+
+  final int postId;
+  final UsageReviewsLoader load;
+
+  @override
+  State<_ReviewTab> createState() => _ReviewTabState();
+}
+
+class _ReviewTabState extends State<_ReviewTab> {
+  late Future<List<UsageReview>> _future = widget.load(widget.postId);
+
+  void _retry() {
+    setState(() {
+      _future = widget.load(widget.postId);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return FutureBuilder<List<UsageReview>>(
+      future: _future,
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const LoadingView(label: '사용 후기를 불러오는 중…');
+        }
+        if (snap.hasError) {
+          return ErrorView(
+            title: '사용 후기를 불러오지 못했습니다.',
+            message: '${snap.error}',
+            onRetry: _retry,
+          );
+        }
+        final reviews = snap.data ?? const <UsageReview>[];
+        if (reviews.isEmpty) {
+          return const EmptyView(message: '아직 사용 후기가 없습니다.');
         }
         return ListView.separated(
-          // B-7
           padding: const EdgeInsets.all(8),
-          itemCount: notes.length,
+          itemCount: reviews.length,
           separatorBuilder: (_, _) => const Divider(height: 1),
-          itemBuilder: (context, i) => ListTile(
-            leading: const Icon(Icons.notes_outlined),
-            title: Text(notes[i].text),
-            subtitle: Text(notes[i].date),
-          ),
-        );
+          itemBuilder: (context, i) {
+            final r = reviews[i];
+            return ListTile(
+              leading: Text(
+                '★' * r.rating.clamp(0, 5) + '☆' * (5 - r.rating).clamp(0, 5),
+                style: TextStyle(color: colors.primary),
+                semanticsLabel: '별점 ${r.rating}점',
+              ),
+              title: Text(r.text),
+            );
+          },
+        ); // B-4 P07 후기
       },
     );
   }
