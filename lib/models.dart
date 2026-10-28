@@ -1,8 +1,8 @@
 // 데이터 모양 — db.json의 한 항목을 화면이 쓰기 좋은 객체로 바꾼다.
 // 형식이 틀린 항목은 null을 돌려준다 → 목록에서 빠질 뿐 앱이 멈추지 않는다 (Dart 3 패턴 매칭).
-// 필드 이름은 mock_server/db.json의 키와 같다 (posts · notices · aiResponses · priceInfo · usageReviews · conditionChecks).
+// 필드 이름은 mock_server/db.json의 키와 같다 (posts · notices · alerts · aiResponses · priceInfo · usageReviews · conditionChecks).
 
-/// 게시판 — A-4 게시판 탭 라벨과 GET /posts?board= 값 (순서는 가이드 그대로) · B-1 제목에도 쓴다
+/// 게시판 — D-2 게시판 탭 · A-9 게시판 바로가기 라벨과 GET /posts?board= 값 · B-1 제목에도 쓴다
 const boardTabs = [
   (label: '장터', board: 'market'),
   (label: '합주실', board: 'studio'),
@@ -116,6 +116,95 @@ class Notice {
   static Notice? fromJson(Object? json) {
     return switch (json) {
       {'id': int id, 'text': String text} => Notice(id: id, text: text),
+      _ => null,
+    };
+  }
+}
+
+/// 알림 조건에 걸린 새 글 미리보기 — 누르면 postId로 B 게시글 상세를 연다
+class AlertMatch {
+  const AlertMatch({
+    required this.postId,
+    required this.board,
+    required this.title,
+    required this.price,
+    required this.image,
+  });
+
+  final int postId;
+
+  /// 화면에 그대로 쓰는 한글 라벨(예: "장터")
+  final String board;
+  final String title;
+  final int price;
+  final String image;
+
+  static AlertMatch? fromJson(Object? json) {
+    return switch (json) {
+      {
+        'postId': int postId,
+        'board': String board,
+        'title': String title,
+        'price': int price,
+        'image': String image,
+      } =>
+        AlertMatch(
+          postId: postId,
+          board: board,
+          title: title,
+          price: price,
+          image: image,
+        ),
+      _ => null,
+    };
+  }
+}
+
+/// 알림 조건 — GET /alerts (미리 걸어 둔 조건과 새 글. 실제 알림 등록 · 매칭 계산은 없다)
+class SearchAlert {
+  const SearchAlert({
+    required this.id,
+    required this.name,
+    required this.query,
+    this.responseId = 1,
+    this.labels = const [],
+    this.newCount = 0,
+    this.matches = const [],
+  });
+
+  final int id;
+
+  /// 짧은 이름 — A-8 조건 칩에 쓴다 (예: "펜더 일렉")
+  final String name;
+
+  /// 알림을 걸 때 쓴 문장 — 누르면 이 문장으로 C 시트를 연다
+  final String query;
+
+  /// C 시트에서 보여 줄 미리 쓴 응답 번호 (aiResponses.id)
+  final int responseId;
+  final List<String> labels;
+
+  /// 새 글 수 — 미리 정한 값 (세지 않는다)
+  final int newCount;
+  final List<AlertMatch> matches;
+
+  static SearchAlert? fromJson(Object? json) {
+    return switch (json) {
+      {'id': int id, 'name': String name, 'query': String query} => SearchAlert(
+        id: id,
+        name: name,
+        query: query,
+        responseId: switch (json['responseId']) {
+          int r => r,
+          _ => 1,
+        },
+        labels: _strings(json['labels']),
+        newCount: switch (json['newCount']) {
+          int n => n,
+          _ => 0,
+        },
+        matches: _objects(json['matches'], AlertMatch.fromJson),
+      ),
       _ => null,
     };
   }
@@ -238,7 +327,7 @@ class PriceInfo {
   }
 }
 
-/// 사용 후기 — GET /usageReviews?postId=
+/// 후기 (db.json usageReviews) — GET /usageReviews?postId=
 class UsageReview {
   const UsageReview({
     required this.id,

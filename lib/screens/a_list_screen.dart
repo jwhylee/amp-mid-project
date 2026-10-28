@@ -1,33 +1,32 @@
-// 화면 A: 통합 홈 (GET /posts?board= · /notices)
+// 화면 A: 통합 홈 (GET /alerts · /notices) — 하단 메뉴 '홈'
 //
-// ── 디자인 가이드 대응표: 화면 A — 통합 홈 (docs/디자인가이드.md 3장과 같게) ──────────────
+// ── 디자인 가이드 대응표: 화면 A — 통합 홈 (docs/디자인가이드.md 3장과 같게) ────────────
 // | 번호 | Flutter 위젯명 | 비즈니스 명칭(한글) | 정보 전달 기준(무엇을 · 순서 · 강조) | 원칙(P번호 · 이유) | 편의성 포인트 |
 // |---|---|---|---|---|---|
-// | A-1 | AppBar | 상단 제목 바 | 앱 이름만, 왼쪽 정렬 | P04 · 모든 화면 같은 자리 | 어느 화면이든 같은 자리에서 위치 확인 |
-// | A-2 | TextField + IconButton | AI 조건 입력창 | 첫 줄 · 가장 크게 · 예시 문장 힌트 | P06 · 키워드 대신 문장 | 키워드를 정확히 기억 안 해도 됨 |
-// | A-3 | Wrap · ActionChip | 예시 조건 칩 | 입력창 바로 아래 · 3개 | P06 · 보고 고르기 | 첫 문장을 직접 안 써도 됨 |
-// | A-4 | TabBar | 게시판 탭 | 장터 · 합주실 · 레슨 · 구인 · 공연 순 | P02 · 현행 잘된 점 유지 | 활동별 게시판을 탭 한 번에 이동 |
-// | A-5 | ExpansionTile | 공지 접기 줄 | 기본 1줄로 접힘 · 누르면 펼침 | P08 · 공지 7줄 제거 | 매물까지 스크롤 안 해도 됨 |
-// | A-6 | ListView / GridView · Card | 게시글 카드 목록 | 제목 → 가격(굵게) → 카테고리 · 지역 칩 | P08 · 판단 정보만 | 목록에서 바로 가격 · 지역 비교 |
-// | A-7 | FutureBuilder · LoadingView · ErrorView · EmptyView | 목록 상태 안내 | 로딩 → 오류 + 다시 시도 → 빈 목록 안내 | P09 · 복구 방법 제시 | 오류 때 앱을 껐다 켜지 않아도 됨 |
+// | A-1 | GradientHeader · HeaderIconButton | 상단 인사 바 | 앱 이름 → 인사 한 줄 · 오른쪽 알림 아이콘(새 글 있으면 주황 점) | P04 · 모든 메뉴 같은 자리 | 새 글이 있는지 첫눈에 앎 |
+// | A-2 | TextField + IconButton | AI 조건 입력창 | 헤더 안 흰 입력창 · 예시 문장 힌트 · 쓴 글이 있으면 지우기(X) · 비어 있으면 보내기 꺼짐 | P06 · P05 · P03 · 키워드 대신 문장 · 빈 문장 막기 · 한 번에 지우기 | 키워드를 정확히 기억 안 해도 됨 |
+// | A-3 | SingleChildScrollView(가로) · PillButton | 예시 조건 칩 | 입력창 아래 안내 한 줄 "AI에게 이렇게 물어보세요" → 가로 한 줄 · 3개 | P06 · 보고 고르기 | 첫 문장을 직접 안 써도 됨 · 알림 조건이 첫 화면에 들어옴 |
+// | A-8 | PillButton · ListView(가로) · Card | 내 알림 조건 | 첫 화면 가운데 · 조건 알약(새 글 수 주황) → 그 조건의 새 글 카드 · "AI 검색으로 보기"(E-2와 같은 이름) | P01 · P04 · P07 | 게시판을 돌지 않아도 걸어 둔 조건의 새 글을 바로 봄 |
+// | A-9 | Row · InkWell | 게시판 바로가기 | 장터 · 합주실 · 레슨 · 구인 · 공연 아이콘 5개 | P02 · P07 | 누르면 게시판 메뉴의 그 게시판으로 |
+// | A-5 | Card · ExpansionTile | 공지 접기 줄 | 기본 1줄로 접힘 · 누르면 펼침 | P08 · 공지 7줄 제거 | 새 글까지 스크롤 안 해도 됨 |
+// | A-10 | FutureBuilder · LoadingView · ErrorView · EmptyView · RefreshIndicator | 알림 조건 상태 안내 | 로딩 → 오류 + 다시 시도 → 빈 목록 안내(알림 거는 법) · 아래로 당겨 새로고침 | P09 · 복구 방법 제시 | 오류 때 앱을 껐다 켜지 않아도 됨 |
 // ────────────────────────────────────────────────────────────────────────────────────────
-// 전환: A → B 쌓기(Navigator.push, 게시글 카드) · A → C 덮기(showModalBottomSheet, AI 조건 입력창 보내기)
-// 적응형: LayoutBuilder 1곳 — 창 너비 600dp 미만 ListView, 600dp 이상 GridView 2열, 900dp 이상 3열 (A-6).
-// 상태관리 포인트(가이드 5장): S1 입력 문장 · S2 선택된 게시판 · S3 서버 응답 상태 → `grep -rn "STATE:" lib`
-// P번호 = 닐슨 원칙 번호 (docs/디자인가이드.md 2장). 그 원칙을 보여 주는 위젯 줄 끝에 `// A-5 P08` 처럼 단다.
+// (예전 A-4 게시판 탭 · A-6 게시글 카드 목록 · A-7 목록 상태 안내는 하단 메뉴 '게시판' = 화면 D의 D-2 · D-3 · D-4로 옮겼다)
+// 전환: A → C 덮기(showModalBottomSheet: A-2 보내기 · A-8 AI 검색) · A → B 쌓기(A-8 새 글 카드)
+//       A → D 옆으로(A-9 바로가기 → 하단 메뉴 게시판) · A → E 옆으로(A-1 알림 아이콘 · A-8 전체 보기)
+// 적응형: 넓은 창에서도 본문은 최대 720dp로 가운데 (헤더만 가로 전체).
+// 상태관리 포인트: S1 입력 문장 · S3 서버 응답 상태 · S7 선택된 알림 조건 → `grep -rn "STATE:" lib`
 import 'package:flutter/material.dart';
 
 import '../api.dart';
 import '../models.dart';
+import '../theme.dart';
 import '../widgets.dart';
 import 'b_detail_screen.dart';
 import 'c_result_sheet.dart';
 
-/// 이 너비 이상이면 격자 2열 (Material 3 window size class: medium ≥ 600dp)
-const wideBreakpoint = 600.0;
-
-/// 이 너비 이상이면 격자 3열 (expanded에 가까운 넓은 창)
-const extraWideBreakpoint = 900.0;
+/// 홈 본문 최대 너비 — 넓은 창에서 줄이 너무 길어지지 않게
+const homeMaxWidth = 720.0;
 
 /// A-3 예시 조건 칩 — 누르면 입력창이 채워진다. responseId = C에서 보여 줄 미리 쓴 응답 (2번 칩만 빈 결과 id=2)
 const exampleConditions = [
@@ -36,26 +35,31 @@ const exampleConditions = [
   (text: '베이스 레슨 초보', responseId: 1),
 ];
 
+/// A-9 게시판 바로가기 아이콘 (boardTabs 순서)
+const boardIcons = [
+  Icons.storefront_outlined, // 장터
+  Icons.graphic_eq, // 합주실
+  Icons.school_outlined, // 레슨
+  Icons.group_add_outlined, // 구인
+  Icons.mic_none, // 공연
+];
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
-    this.loadPosts = fetchPosts,
-    this.loadNotices = fetchNotices,
-    this.loadUsageReviews = fetchUsageReviews,
-    this.loadPriceInfo = fetchPriceInfo,
-    this.loadConditionCheck = fetchConditionCheck,
-    this.loadAiResponse = fetchAiResponse,
-    this.loadPost = fetchPost,
+    this.loaders = const AppLoaders(),
+    this.onOpenBoard,
+    this.onOpenAlerts,
   });
 
-  /// 데이터를 가져오는 함수 — 앱은 기본값(GET), 테스트는 가짜 함수를 넣는다.
-  final PostsLoader loadPosts;
-  final NoticesLoader loadNotices;
-  final UsageReviewsLoader loadUsageReviews;
-  final PriceInfoLoader loadPriceInfo;
-  final ConditionCheckLoader loadConditionCheck;
-  final AiResponseLoader loadAiResponse;
-  final PostLoader loadPost;
+  /// 데이터를 가져오는 함수 묶음 — 앱은 기본값(GET), 테스트는 가짜 함수를 넣는다.
+  final AppLoaders loaders;
+
+  /// A-9 → 하단 메뉴 '게시판'의 그 게시판 (boardTabs 번호)
+  final ValueChanged<int>? onOpenBoard;
+
+  /// A-1 알림 아이콘 · A-8 전체 보기 → 하단 메뉴 '알림'
+  final VoidCallback? onOpenAlerts;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -63,9 +67,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _query = TextEditingController();
-  var _boardIndex = 0;
-  late Future<List<Post>> _posts = widget.loadPosts(boardTabs.first.board);
-  late Future<List<Notice>> _notices = widget.loadNotices();
+  late Future<List<SearchAlert>> _alerts = widget.loaders.alerts();
+  late Future<List<Notice>> _notices = widget.loaders.notices();
+
+  /// A-8에서 고른 알림 조건 번호
+  var _alertIndex = 0;
 
   @override
   void dispose() {
@@ -85,160 +91,428 @@ class _HomeScreenState extends State<HomeScreen> {
     final query = _query.text.trim();
     if (query.isEmpty) return;
     FocusScope.of(context).unfocus();
-    final example = exampleConditions.where((e) => e.text == query).firstOrNull;
+    // 띄어쓰기만 다르면 같은 예시로 본다 (직접 칠 때 빈칸 실수로 다른 응답이 나오지 않게) — 문장 해석 아님
+    String bare(String t) => t.replaceAll(RegExp(r'\s'), '');
+    final example = exampleConditions
+        .where((e) => bare(e.text) == bare(query))
+        .firstOrNull;
     AiSearchConfirmSheet.show(
       context,
       query: query,
       responseId: example?.responseId ?? 1,
-      loadAiResponse: widget.loadAiResponse,
-      loadPost: widget.loadPost,
-      loadPriceInfo: widget.loadPriceInfo,
-      loadConditionCheck: widget.loadConditionCheck,
-      loadUsageReviews: widget.loadUsageReviews,
+      loaders: widget.loaders,
     );
   }
 
-  /// A-4 게시판 탭 누름 → 그 게시판 글을 다시 GET
-  void _selectBoard(int index) {
-    if (index == _boardIndex) return;
-    // STATE: S2 선택된 게시판 → A-4 · A-6
-    setState(() {
-      _boardIndex = index;
-      _posts = widget.loadPosts(boardTabs[index].board);
-    });
-  }
-
-  /// A-7 다시 시도 = Future만 새로 만드는 setState (화면 안 표시 변화 — 허용)
-  // (주의) `setState(() => _posts = …)`처럼 화살표로 쓰면 Future를 돌려줘 디버그 오류가 난다 → 중괄호로 쓴다.
-  void _retry() {
-    // STATE: S3 서버 응답 상태 → A-7
-    setState(() {
-      _posts = widget.loadPosts(boardTabs[_boardIndex].board);
-      _notices = widget.loadNotices();
-    });
-  }
-
-  void _open(Post post) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PostDetailScreen(
-          post: post,
-          loadConditionCheck: widget.loadConditionCheck,
-          loadPriceInfo: widget.loadPriceInfo,
-          loadUsageReviews: widget.loadUsageReviews,
-        ),
-      ),
+  /// A-8 AI 검색 → 알림을 걸 때 쓴 문장으로 C 시트를 연다
+  void _searchAlert(SearchAlert alert) {
+    AiSearchConfirmSheet.show(
+      context,
+      query: alert.query,
+      responseId: alert.responseId,
+      loaders: widget.loaders,
     );
+  }
+
+  /// A-8 새 글 카드 → B 게시글 상세 (쌓기)
+  void _openMatch(AlertMatch match) {
+    openPostById(context, widget.loaders, match.postId);
+  }
+
+  void _selectAlert(int index) {
+    // STATE: S7 선택된 알림 조건 → A-8
+    setState(() {
+      _alertIndex = index;
+    });
+  }
+
+  /// A-10 · A-5 다시 시도 · 당겨서 새로고침 = Future만 새로 만드는 setState
+  Future<void> _retry() {
+    // STATE: S3 서버 응답 상태 → A-10 · A-5
+    setState(() {
+      _alerts = widget.loaders.alerts();
+      _notices = widget.loaders.notices();
+    });
+    return settle(Future.wait([_alerts, _notices]));
+  }
+
+  void _clearQuery() {
+    // STATE: S1 입력 문장 → A-2 · C-1
+    _query.clear();
   }
 
   @override
   Widget build(BuildContext context) {
+    // A-10 P09 당겨서 다시 불러오기 (알림 조건 · 공지)
+    return RefreshIndicator(
+      onRefresh: _retry,
+      edgeOffset: MediaQuery.paddingOf(context).top,
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: FutureBuilder<List<SearchAlert>>(
+              future: _alerts,
+              builder: (context, snap) => GradientHeader(
+                title: 'MuBase',
+                subtitle: '안녕하세요! 오늘은 어떤 악기를 찾나요?',
+                actions: [
+                  HeaderIconButton(
+                    icon: Icons.notifications_none,
+                    tooltip: '알림 보기',
+                    dot: (snap.data ?? const []).any((a) => a.newCount > 0),
+                    onPressed: () => widget.onOpenAlerts?.call(),
+                  ),
+                ], // A-1 P04
+                // STATE: S1 입력 문장 → A-2 · C-1
+                bottom: TextField(
+                  controller: _query,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) => _send(),
+                  decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    hintText: '예: 60만 원 이하 펜더 일렉, 앰프는 빼고',
+                    prefixIcon: const Icon(
+                      Icons.auto_awesome,
+                      color: mulePurple,
+                    ),
+                    // 비어 있으면 보내기를 끄고, 쓴 글이 있으면 지우기(X)를 보인다
+                    suffixIcon: ValueListenableBuilder(
+                      valueListenable: _query,
+                      builder: (context, value, _) {
+                        final empty = value.text.trim().isEmpty;
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (value.text.isNotEmpty)
+                              IconButton(
+                                onPressed: _clearQuery,
+                                icon: const Icon(
+                                  Icons.cancel,
+                                  color: muleSubtle,
+                                ),
+                                tooltip: '지우기',
+                              ), // A-2 P03 지우기
+                            IconButton(
+                              onPressed: empty ? null : _send,
+                              icon: const Icon(Icons.send),
+                              color: mulePurple,
+                              tooltip: '보내기',
+                            ), // A-2 P05 빈 문장은 보내지 않음
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ), // A-2 P06
+              ),
+            ),
+          ),
+          _section(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
+              child: Text(
+                'AI에게 이렇게 물어보세요',
+                style: Theme.of(
+                  context,
+                ).textTheme.labelMedium?.copyWith(color: muleSubtle),
+              ),
+            ),
+          ),
+          _section(
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  for (final example in exampleConditions)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: PillButton(
+                        label: example.text,
+                        icon: Icons.auto_awesome,
+                        onTap: () => _fillExample(example.text),
+                      ),
+                    ),
+                ],
+              ), // A-3 P06 가로 한 줄 — 알림 조건이 첫 화면에 들어오게
+            ),
+          ),
+          _section(
+            SectionTitle(
+              '내 알림 조건',
+              action: '전체 보기',
+              onAction: widget.onOpenAlerts,
+            ),
+          ),
+          _section(
+            FutureBuilder<List<SearchAlert>>(
+              future: _alerts,
+              builder: (context, snap) {
+                // 당겨서 새로고침 중에는 이전 목록을 그대로 둔다 (깜빡이지 않게)
+                if (snap.connectionState != ConnectionState.done &&
+                    !snap.hasData) {
+                  return const SizedBox(
+                    height: 160,
+                    child: LoadingView(label: '알림 조건을 불러오는 중…'),
+                  ); // A-10 P09
+                }
+                if (snap.hasError) {
+                  return ErrorView(
+                    title: '알림 조건을 불러오지 못했습니다.',
+                    message: '${snap.error}',
+                    onRetry: _retry,
+                  ); // A-10 P09
+                }
+                final alerts = snap.data ?? const <SearchAlert>[];
+                if (alerts.isEmpty) {
+                  return const EmptyView(
+                    message:
+                        '아직 알림을 건 조건이 없어요.\n입력창에 찾는 조건을 말하고 "이 조건으로 알림"을 눌러 보세요.',
+                  ); // A-10 P09
+                }
+                return _AlertShelf(
+                  alerts: alerts,
+                  selected: _alertIndex.clamp(0, alerts.length - 1),
+                  onSelect: _selectAlert,
+                  onOpenMatch: _openMatch,
+                  onSearch: _searchAlert,
+                ); // A-8 P01 · P07
+              },
+            ),
+          ),
+          _section(const SectionTitle('게시판 바로가기')),
+          _section(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  for (final (i, b) in boardTabs.indexed)
+                    Expanded(
+                      child: _BoardShortcut(
+                        icon: boardIcons[i],
+                        label: b.label,
+                        onTap: () => widget.onOpenBoard?.call(i),
+                      ),
+                    ),
+                ],
+              ), // A-9 P02 · P07
+            ),
+          ),
+          _section(const SectionTitle('공지')),
+          _section(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              child: _NoticeFold(future: _notices, onRetry: _retry),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 본문 한 구역 — 넓은 창에서 가운데 최대 720dp
+  Widget _section(Widget child) => SliverToBoxAdapter(
+    child: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: homeMaxWidth),
+        child: SizedBox(width: double.infinity, child: child),
+      ),
+    ),
+  );
+}
+
+/// A-8 내 알림 조건 — 조건 칩을 고르면 그 조건에 걸린 새 글이 가로로 나온다
+class _AlertShelf extends StatelessWidget {
+  const _AlertShelf({
+    required this.alerts,
+    required this.selected,
+    required this.onSelect,
+    required this.onOpenMatch,
+    required this.onSearch,
+  });
+
+  final List<SearchAlert> alerts;
+  final int selected;
+  final ValueChanged<int> onSelect;
+  final ValueChanged<AlertMatch> onOpenMatch;
+  final ValueChanged<SearchAlert> onSearch;
+
+  @override
+  Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return DefaultTabController(
-      length: boardTabs.length,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('MuBase'),
-          centerTitle: false,
-        ), // A-1 P04
-        body: LayoutBuilder(
-          // 적응형: 기기 종류가 아니라 "이 영역의 너비"로 나눈다
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final columns = width >= extraWideBreakpoint
-                ? 3
-                : width >= wideBreakpoint
-                ? 2
-                : 1;
-            return CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    // STATE: S1 입력 문장 → A-2 · C-1
-                    child: TextField(
-                      controller: _query,
-                      style: text.titleMedium,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _send(),
-                      decoration: InputDecoration(
-                        hintText: '예: 60만 원 이하 펜더 일렉, 앰프는 빼고',
-                        prefixIcon: const Icon(Icons.auto_awesome),
-                        suffixIcon: IconButton(
-                          onPressed: _send,
-                          icon: const Icon(Icons.send),
-                          tooltip: '보내기',
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
+    final alert = alerts[selected];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              for (final (i, a) in alerts.indexed)
+                Padding(
+                  padding: const EdgeInsets.only(right: 12, top: 8),
+                  // 새 글 수는 칩 오른쪽 위 주황 배지로 (칩 안에 넣으면 글자가 잘린다)
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      PillButton(
+                        label: a.name,
+                        selected: i == selected,
+                        onTap: () => onSelect(i),
                       ),
-                    ), // A-2 P06
+                      if (a.newCount > 0)
+                        Positioned(
+                          right: -6,
+                          top: -8,
+                          child: NewBadge(count: a.newCount),
+                        ),
+                    ],
                   ),
                 ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: [
-                        for (final example in exampleConditions)
-                          ActionChip(
-                            label: Text(example.text),
-                            onPressed: () => _fillExample(example.text),
-                          ),
-                      ],
-                    ), // A-3 P06
+            ],
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+          padding: const EdgeInsets.fromLTRB(14, 6, 6, 14),
+          decoration: BoxDecoration(
+            color: mulePurple.withValues(alpha: 0.07),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      alert.labels.join(' · '),
+                      style: text.bodySmall?.copyWith(color: muleSubtle),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => onSearch(alert),
+                    icon: const Icon(Icons.auto_awesome, size: 16),
+                    label: const Text('AI 검색으로 보기'),
+                  ), // A-8 P04 알림 화면(E-2)과 같은 이름
+                ],
+              ),
+              if (alert.matches.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+                  child: Text(
+                    '아직 새 글이 없어요. 새 글이 올라오면 여기에 보여요.',
+                    style: text.bodyMedium,
+                  ),
+                )
+              else
+                SizedBox(
+                  // 사진 100 + 글자 줄 — 글자 크기 설정이 커져도 카드가 넘치지 않게
+                  height: scaledHeight(context, 130, 84),
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.only(right: 8),
+                    itemCount: alert.matches.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 12),
+                    itemBuilder: (context, i) => _MatchCard(
+                      match: alert.matches[i],
+                      onTap: () => onOpenMatch(alert.matches[i]),
+                    ),
                   ),
                 ),
-                SliverToBoxAdapter(
-                  child: TabBar(
-                    onTap: _selectBoard,
-                    tabs: [for (final b in boardTabs) Tab(text: b.label)],
-                  ), // A-4 P02
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A-8 새 글 카드 한 장 — 사진 → 게시판 → 제목 → 가격(굵게)
+class _MatchCard extends StatelessWidget {
+  const _MatchCard({required this.match, required this.onTap});
+
+  final AlertMatch match;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return SizedBox(
+      width: 176,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RoundedImage(match.image, width: 160, height: 100),
+                const SizedBox(height: 8),
+                Text(
+                  match.board,
+                  style: text.labelSmall?.copyWith(color: mulePurple),
                 ),
-                SliverToBoxAdapter(child: _NoticeFold(future: _notices)),
-                FutureBuilder<List<Post>>(
-                  future: _posts,
-                  builder: (context, snap) {
-                    if (snap.connectionState != ConnectionState.done) {
-                      return const SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: LoadingView(label: '게시글을 불러오는 중…'), // A-7 P09
-                      );
-                    }
-                    if (snap.hasError) {
-                      return SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: ErrorView(
-                          title: '게시글을 불러오지 못했습니다.',
-                          message: '${snap.error}',
-                          onRetry: _retry,
-                        ), // A-7 P09
-                      );
-                    }
-                    final posts = snap.data ?? const <Post>[];
-                    if (posts.isEmpty) {
-                      return const SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: EmptyView(
-                          message: '이 게시판에는 아직 글이 없습니다.\n다른 게시판 탭을 눌러 보세요.',
-                        ), // A-7 P09
-                      );
-                    }
-                    return SliverToBoxAdapter(
-                      child: _PostCardList(
-                        posts: posts,
-                        columns: columns,
-                        onOpen: _open,
-                      ),
-                    );
-                  },
+                const SizedBox(height: 2),
+                Text(
+                  match.title,
+                  style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const Spacer(),
+                Text(
+                  formatWon(match.price),
+                  style: text.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
-            );
-          },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A-9 게시판 바로가기 한 칸 — 둥근 네모 아이콘 + 이름
+class _BoardShortcut extends StatelessWidget {
+  const _BoardShortcut({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Column(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: muleLine),
+              ),
+              child: Icon(icon, color: mulePurple),
+            ),
+            const SizedBox(height: 6),
+            Text(label, style: Theme.of(context).textTheme.labelMedium),
+          ],
         ),
       ),
     );
@@ -247,136 +521,50 @@ class _HomeScreenState extends State<HomeScreen> {
 
 /// A-5 공지 접기 줄 — 기본 1줄로 접혀 있고 누르면 펼친다.
 class _NoticeFold extends StatelessWidget {
-  const _NoticeFold({required this.future});
+  const _NoticeFold({required this.future, required this.onRetry});
 
   final Future<List<Notice>> future;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
-    const icon = Icon(Icons.campaign_outlined);
-    return FutureBuilder<List<Notice>>(
-      future: future,
-      builder: (context, snap) {
-        if (snap.connectionState != ConnectionState.done) {
-          return const ListTile(leading: icon, title: Text('공지를 불러오는 중…'));
-        }
-        if (snap.hasError) {
-          // 공지는 보조 정보 — 다시 시도는 A-7 버튼이 공지까지 함께 다시 가져온다
-          return const ListTile(leading: icon, title: Text('공지를 불러오지 못했습니다.'));
-        }
-        final notices = snap.data ?? const <Notice>[];
-        if (notices.isEmpty) return const SizedBox.shrink();
-        return ExpansionTile(
-          leading: icon,
-          title: Text(
-            notices.first.text,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Text('공지 ${notices.length}건 · 눌러서 펼치기'),
-          children: [
-            for (final n in notices) ListTile(dense: true, title: Text(n.text)),
-          ],
-        ); // A-5 P08
-      },
-    );
-  }
-}
-
-/// A-6 게시글 카드 목록 — 바깥 CustomScrollView가 스크롤하므로 안쪽은 shrinkWrap
-class _PostCardList extends StatelessWidget {
-  const _PostCardList({
-    required this.posts,
-    required this.columns,
-    required this.onOpen,
-  });
-
-  final List<Post> posts;
-  final int columns;
-  final ValueChanged<Post> onOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    if (columns > 1) {
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(12),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columns,
-          mainAxisExtent: 156,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        itemCount: posts.length,
-        itemBuilder: (context, i) =>
-            PostCard(posts[i], grid: true, onTap: () => onOpen(posts[i])),
-      ); // A-6 P08 넓은 화면: 격자 2열(≥600dp) · 3열(≥900dp)
-    }
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(top: 4, bottom: 16),
-      itemCount: posts.length,
-      itemBuilder: (context, i) =>
-          PostCard(posts[i], onTap: () => onOpen(posts[i])),
-    ); // A-6 P08 좁은 화면: 목록
-  }
-}
-
-/// 게시글 카드 한 장 — 제목 → 가격(굵게) → 카테고리 · 지역 칩 (판단 정보만)
-class PostCard extends StatelessWidget {
-  const PostCard(this.post, {super.key, this.onTap, this.grid = false});
-
-  final Post post;
-  final VoidCallback? onTap;
-
-  /// true: 넓은 화면 격자용(여백 없음) · false: 폰 목록용(좌우 여백)
-  final bool grid;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    const icon = Icon(Icons.campaign_outlined, color: muleOrange);
     return Card(
-      margin: grid
-          ? EdgeInsets.zero
-          : const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+      child: FutureBuilder<List<Notice>>(
+        future: future,
+        builder: (context, snap) {
+          if (snap.connectionState != ConnectionState.done) {
+            return const ListTile(leading: icon, title: Text('공지를 불러오는 중…'));
+          }
+          if (snap.hasError) {
+            return ListTile(
+              leading: icon,
+              title: const Text('공지를 불러오지 못했습니다.'),
+              trailing: TextButton(
+                onPressed: onRetry,
+                child: const Text('다시 시도'),
+              ),
+            );
+          }
+          final notices = snap.data ?? const <Notice>[];
+          if (notices.isEmpty) {
+            return const ListTile(leading: icon, title: Text('새 공지가 없습니다.'));
+          }
+          return ExpansionTile(
+            leading: icon,
+            title: Text(
+              notices.first.text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text('공지 ${notices.length}건 · 눌러서 펼치기'),
             children: [
-              Text(
-                post.title,
-                style: text.titleMedium,
-                maxLines: grid ? 2 : 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                formatWon(post.price),
-                style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ), // A-6 P08 가격 굵게
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                runSpacing: 4,
-                children: [
-                  for (final label in [post.category, post.region])
-                    Chip(
-                      label: Text(label),
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                ],
-              ),
+              for (final n in notices)
+                ListTile(dense: true, title: Text(n.text)),
             ],
-          ),
-        ),
+          ); // A-5 P08
+        },
       ),
     );
   }

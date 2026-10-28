@@ -10,10 +10,12 @@
 // | B-5 | Row · LinearProgressIndicator | 시세 범위 막대 | 최저 · 평균 · 최고 + 이 매물 위치 | P07 | 비싼지 싼지 바로 판단 |
 // | B-6 | Stack · Image · ListTile | AI 상태 체크 | 사진 위 번호 → 항목별 상태(좋음 · 보통 · 확인 필요) | P01 · #7 | 사진만 보고 혼자 상태를 짐작하지 않음 |
 // | B-7 | FilledButton → showDialog | 판매자 연락 버튼 | 화면 아래 고정 | P03 · 취소 가능 | 잘못 눌러도 취소 가능 |
+// | B-8 | FutureBuilder · LoadingView · ErrorView · EmptyView | 게시글 불러오기 상태 안내 | 누르자마자 상세로 넘어감 → 여는 중 → 오류 + 다시 시도 → 없는 글 안내 | P01 · P09 | 눌렀는데 반응 없는 순간이 없음 · 실패해도 그 자리에서 다시 시도 |
 // ────────────────────────────────────────────────────────────────────────────────────────
-// 전환: A → B · C → B 쌓기(Navigator.push) · B 안에서 옆으로(TabBar) · B-7 덮기(showDialog). 뒤로 가면 온 곳(홈 또는 시트)으로.
+// 전환: A(알림 새 글) · C · D · E → B 쌓기(Navigator.push) · B 안에서 옆으로(TabBar) · B-7 덮기(showDialog). 뒤로 가면 온 곳(홈 · 게시판 · 알림 또는 시트)으로.
+// postId만 아는 곳(A-8 · C-5 · E-2)은 B-8이 먼저 열려 글을 받은 뒤 같은 자리에 상세를 그린다.
 // 적응형: 넓은 화면에서 본문 최대 너비 720dp로 가운데 정렬.
-// 상태관리 포인트(가이드 5장): S6 선택된 판단 정보 탭 (AI 상태 체크 포함) → `grep -rn "STATE:" lib`
+// 상태관리 포인트(가이드 5장): S3 서버 응답 상태(B-8) · S6 선택된 판단 정보 탭 (AI 상태 체크 포함) → `grep -rn "STATE:" lib`
 //
 // ⚠ AI 상태 체크 · 시세 · 사양 · 후기는 미리 정한 데이터를 그대로 보여 준다.
 //   이미지를 분석하거나 시세를 계산하거나 판매자에게 실제로 연락하지 않는다.
@@ -21,10 +23,112 @@ import 'package:flutter/material.dart';
 
 import '../api.dart';
 import '../models.dart';
+import '../theme.dart';
 import '../widgets.dart';
 
 /// 넓은 화면에서 본문 최대 너비 (가이드 1장 적응형)
 const detailMaxWidth = 720.0;
+
+/// B 게시글 상세 열기 (쌓기) — 게시판 카드처럼 글을 이미 가진 곳에서
+void openPostDetail(
+  BuildContext context,
+  Post post,
+  AppLoaders loaders, {
+  List<String> reasons = const [],
+}) {
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => PostDetailScreen(
+        post: post,
+        reasons: reasons,
+        loadConditionCheck: loaders.conditionCheck,
+        loadPriceInfo: loaders.priceInfo,
+        loadUsageReviews: loaders.usageReviews,
+      ),
+    ),
+  );
+}
+
+/// postId만 아는 곳(C-5 추천 결과 · 알림 새 글)에서 — 화면을 먼저 열고(쌓기) 그 안에서 GET /posts?id=
+void openPostById(
+  BuildContext context,
+  AppLoaders loaders,
+  int postId, {
+  List<String> reasons = const [],
+}) {
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) =>
+          PostLoadingScreen(postId: postId, reasons: reasons, loaders: loaders),
+    ),
+  );
+}
+
+/// B-8 게시글 불러오기 상태 안내 — 누르자마자 상세 화면으로 넘어가고, 글을 받는 동안 · 실패 · 없음을 여기서 보여 준다.
+/// 받으면 같은 자리에 게시글 상세를 그린다 (뒤로가기 한 번이면 온 곳으로).
+class PostLoadingScreen extends StatefulWidget {
+  const PostLoadingScreen({
+    super.key,
+    required this.postId,
+    this.reasons = const [],
+    this.loaders = const AppLoaders(),
+  });
+
+  final int postId;
+  final List<String> reasons;
+  final AppLoaders loaders;
+
+  @override
+  State<PostLoadingScreen> createState() => _PostLoadingScreenState();
+}
+
+class _PostLoadingScreenState extends State<PostLoadingScreen> {
+  late Future<Post?> _future = widget.loaders.post(widget.postId);
+
+  void _retry() {
+    // STATE: S3 서버 응답 상태 → B-8
+    setState(() {
+      _future = widget.loaders.post(widget.postId);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Post?>(
+      future: _future,
+      builder: (context, snap) {
+        final post = snap.data;
+        if (snap.connectionState == ConnectionState.done && post != null) {
+          return PostDetailScreen(
+            post: post,
+            reasons: widget.reasons,
+            loadConditionCheck: widget.loaders.conditionCheck,
+            loadPriceInfo: widget.loaders.priceInfo,
+            loadUsageReviews: widget.loaders.usageReviews,
+          );
+        }
+        final Widget body;
+        if (snap.connectionState != ConnectionState.done) {
+          body = const LoadingView(label: '게시글을 여는 중…'); // B-8 P01
+        } else if (snap.hasError) {
+          body = ErrorView(
+            title: '게시글을 열지 못했습니다.',
+            message: '${snap.error}',
+            onRetry: _retry,
+          ); // B-8 P09
+        } else {
+          body = const EmptyView(
+            message: '삭제되었거나 찾을 수 없는 글입니다.\n뒤로 가서 다른 글을 골라 보세요.',
+          ); // B-8 P09
+        }
+        return Scaffold(
+          appBar: gradientAppBar(title: const Text('게시글')),
+          body: body,
+        );
+      },
+    );
+  }
+}
 
 class PostDetailScreen extends StatelessWidget {
   const PostDetailScreen({
@@ -69,10 +173,7 @@ class PostDetailScreen extends StatelessWidget {
     return DefaultTabController(
       length: tabs.length,
       child: Scaffold(
-        appBar: AppBar(
-          leading: const BackButton(),
-          title: Text(boardLabel(post.board)),
-        ), // B-1 P03
+        appBar: gradientAppBar(title: Text(boardLabel(post.board))), // B-1 P03
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: detailMaxWidth),
@@ -83,11 +184,14 @@ class PostDetailScreen extends StatelessWidget {
                   SliverToBoxAdapter(child: _MatchReasons(reasons: reasons)),
                 SliverToBoxAdapter(
                   // STATE: S6 선택된 판단 정보 탭 (AI 상태 체크 포함) → B-4 · B-6 (DefaultTabController가 화면 안에서만 처리)
-                  child: TabBar(
-                    isScrollable: tabs.length > 1,
-                    tabAlignment: tabs.length > 1 ? TabAlignment.start : null,
-                    tabs: [for (final t in tabs) Tab(text: t.label)],
-                  ), // B-4 P07
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                    child: TabBar(
+                      isScrollable: tabs.length > 1,
+                      tabAlignment: tabs.length > 1 ? TabAlignment.start : null,
+                      tabs: [for (final t in tabs) Tab(text: t.label)],
+                    ), // B-4 P07
+                  ),
                 ),
               ],
               body: TabBarView(children: [for (final t in tabs) t.view]),
@@ -144,6 +248,7 @@ class PostDetailScreen extends StatelessWidget {
 }
 
 /// B-2 게시글 머리 — 사진 → 제목 → 가격(가장 크게) → 지역
+/// 그라데이션 띠 위에 사진을 올리고, 그 아래 흰 카드에 판단 정보를 모은다.
 class _PostHeader extends StatelessWidget {
   const _PostHeader({required this.post});
 
@@ -152,45 +257,79 @@ class _PostHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: AspectRatio(
-              aspectRatio: 16 / 9,
-              child: NetImage(post.image),
-            ),
-          ), // B-2 P08
-          const SizedBox(height: 12),
-          Text(post.title, style: text.titleLarge),
-          const SizedBox(height: 4),
-          Text(
-            formatWon(post.price),
-            style: text.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-          ), // B-2 P08 가격 가장 크게
-          const SizedBox(height: 4),
-          Row(
+    final grey = text.bodyMedium?.copyWith(color: muleSubtle);
+    return Stack(
+      children: [
+        Container(
+          height: 120,
+          decoration: const BoxDecoration(
+            gradient: muleGradient,
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.place_outlined,
-                size: 16,
-                color: colors.onSurfaceVariant,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                post.region,
-                style: text.bodyMedium?.copyWith(
-                  color: colors.onSurfaceVariant,
+              AspectRatio(
+                aspectRatio: 16 / 9,
+                child: RoundedImage(post.image, radius: 20),
+              ), // B-2 P08
+              const SizedBox(height: 12),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        post.category,
+                        style: text.labelMedium?.copyWith(color: mulePurple),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        post.title,
+                        style: text.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        formatWon(post.price),
+                        style: text.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ), // B-2 P08 가격 가장 크게
+                      const SizedBox(height: 6),
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.place_outlined,
+                            size: 16,
+                            color: muleSubtle,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(post.region, style: grey),
+                          const SizedBox(width: 12),
+                          const Icon(
+                            Icons.schedule,
+                            size: 16,
+                            color: muleSubtle,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(formatDate(post.createdAt), style: grey),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -214,6 +353,8 @@ class _MatchReasons extends StatelessWidget {
             Chip(
               avatar: Icon(Icons.check, size: 16, color: colors.primary),
               label: Text(r),
+              backgroundColor: mulePurple.withValues(alpha: 0.08),
+              side: BorderSide.none,
               visualDensity: VisualDensity.compact,
             ),
         ],
@@ -234,12 +375,22 @@ class _BodyTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text(post.body, style: text.bodyLarge),
-        const SizedBox(height: 12),
-        Text(
-          '작성일 ${post.createdAt}',
-          style: text.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(post.body, style: text.bodyLarge),
+                const SizedBox(height: 12),
+                Text(
+                  '작성일 ${formatDate(post.createdAt)}',
+                  style: text.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -341,18 +492,20 @@ class ConditionCheckView extends StatelessWidget {
         ), // B-6 P01 사진 위 번호
         const SizedBox(height: 8),
         for (final item in check.items)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: badge(item),
-            title: Text('${item.part} — ${item.level}'),
-            subtitle: Text(item.note),
-            trailing: Icon(
-              item.level == '좋음'
-                  ? Icons.check_circle_outline
-                  : item.level == '보통'
-                  ? Icons.info_outline
-                  : Icons.help_outline,
-              color: levelColor(item.level),
+          Card(
+            margin: const EdgeInsets.only(bottom: 8),
+            child: ListTile(
+              leading: badge(item),
+              title: Text('${item.part} — ${item.level}'),
+              subtitle: Text(item.note),
+              trailing: Icon(
+                item.level == '좋음'
+                    ? Icons.check_circle_outline
+                    : item.level == '보통'
+                    ? Icons.info_outline
+                    : Icons.help_outline,
+                color: levelColor(item.level),
+              ),
             ),
           ), // B-6 P01 항목별 상태
       ],
@@ -401,7 +554,14 @@ class _PriceTabState extends State<_PriceTab> {
         }
         return ListView(
           padding: const EdgeInsets.all(16),
-          children: [PriceRangeBar(info: info, price: widget.post.price)],
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: PriceRangeBar(info: info, price: widget.post.price),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -423,11 +583,17 @@ class PriceRangeBar extends StatelessWidget {
     final position = span <= 0
         ? 0.5
         : ((price - info.low) / span).clamp(0.0, 1.0);
-    Widget label(String name, int value) => Column(
-      children: [
-        Text(name, style: text.labelMedium),
-        Text(formatWon(value), style: text.bodyMedium),
-      ],
+    Widget label(String name, int value, CrossAxisAlignment align) => Expanded(
+      child: Column(
+        crossAxisAlignment: align,
+        children: [
+          Text(name, style: text.labelMedium),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(formatWon(value), style: text.bodyMedium),
+          ),
+        ],
+      ),
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -437,6 +603,8 @@ class PriceRangeBar extends StatelessWidget {
         LinearProgressIndicator(
           value: position,
           minHeight: 12,
+          color: muleOrange,
+          backgroundColor: mulePurple.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(6),
           semanticsLabel: '시세 범위 안 이 매물 위치',
         ), // B-5 P07
@@ -444,9 +612,9 @@ class PriceRangeBar extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            label('최저', info.low),
-            label('평균', info.avg),
-            label('최고', info.high),
+            label('최저', info.low, CrossAxisAlignment.start),
+            label('평균', info.avg, CrossAxisAlignment.center),
+            label('최고', info.high, CrossAxisAlignment.end),
           ],
         ), // B-5 P07
       ],
@@ -471,10 +639,23 @@ class _SpecTab extends StatelessWidget {
       return const EmptyView(message: '등록된 사양이 없습니다.');
     }
     return ListView(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(16),
       children: [
-        for (final (name, value) in rows)
-          ListTile(dense: true, title: Text(name), trailing: Text(value)),
+        Card(
+          child: Column(
+            children: [
+              for (final (name, value) in rows)
+                ListTile(
+                  dense: true,
+                  title: Text(name),
+                  trailing: Text(
+                    value,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -502,37 +683,38 @@ class _ReviewTabState extends State<_ReviewTab> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return FutureBuilder<List<UsageReview>>(
       future: _future,
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
-          return const LoadingView(label: '사용 후기를 불러오는 중…');
+          return const LoadingView(label: '후기를 불러오는 중…');
         }
         if (snap.hasError) {
           return ErrorView(
-            title: '사용 후기를 불러오지 못했습니다.',
+            title: '후기를 불러오지 못했습니다.',
             message: '${snap.error}',
             onRetry: _retry,
           );
         }
         final reviews = snap.data ?? const <UsageReview>[];
         if (reviews.isEmpty) {
-          return const EmptyView(message: '아직 사용 후기가 없습니다.');
+          return const EmptyView(message: '아직 후기가 없습니다.');
         }
         return ListView.separated(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(16),
           itemCount: reviews.length,
-          separatorBuilder: (_, _) => const Divider(height: 1),
+          separatorBuilder: (_, _) => const SizedBox(height: 8),
           itemBuilder: (context, i) {
             final r = reviews[i];
-            return ListTile(
-              leading: Text(
-                '★' * r.rating.clamp(0, 5) + '☆' * (5 - r.rating).clamp(0, 5),
-                style: TextStyle(color: colors.primary),
-                semanticsLabel: '별점 ${r.rating}점',
+            return Card(
+              child: ListTile(
+                leading: Text(
+                  '★' * r.rating.clamp(0, 5) + '☆' * (5 - r.rating).clamp(0, 5),
+                  style: const TextStyle(color: muleOrange),
+                  semanticsLabel: '별점 ${r.rating}점',
+                ),
+                title: Text(r.text),
               ),
-              title: Text(r.text),
             );
           },
         ); // B-4 P07 후기

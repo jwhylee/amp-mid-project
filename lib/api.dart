@@ -11,6 +11,7 @@
 //   --dart-define=DEMO_STATE=loading → 3초 늦게 응답 (로딩 상태)
 //   --dart-define=DEMO_STATE=error   → 항상 실패 (오류 상태 + 다시 시도)
 //   --dart-define=DEMO_STATE=empty   → 빈 목록 (빈 상태)
+//   앱을 다시 켜지 않고 바꾸려면: 하단 메뉴 '설정' → F-4 데모 상태 (영상 한 번에 3상태를 찍을 때)
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -31,7 +32,8 @@ String get apiBase {
 }
 
 /// loading(=slow) · error · empty — 그 외 값이면 평소처럼 서버에서 가져온다.
-const demoState = String.fromEnvironment('DEMO_STATE');
+/// 처음 값은 --dart-define, 실행 중에는 F-4 데모 상태가 바꾼다 (메모리에만 — 저장하지 않는다)
+var demoState = const String.fromEnvironment('DEMO_STATE');
 
 /// 화면에 그대로 보여 줄 수 있는 오류 문장
 class ApiException implements Exception {
@@ -48,7 +50,7 @@ Future<List<Object?>> _getList(String path) async {
     case 'loading' || 'slow':
       await Future<void>.delayed(const Duration(seconds: 3));
     case 'error':
-      throw const ApiException('DEMO_STATE=error 로 일부러 낸 오류입니다.');
+      throw const ApiException('데모 상태 [오류]로 일부러 낸 오류입니다.');
     case 'empty':
       return const [];
   }
@@ -71,22 +73,28 @@ Future<List<Object?>> _getList(String path) async {
   return decoded;
 }
 
-/// A 통합 홈 게시판 탭: GET /posts?board=market (market · studio · lesson · recruit · show)
+/// D 게시판 탭: GET /posts?board=market (market · studio · lesson · recruit · show)
 Future<List<Post>> fetchPosts(String board) async {
   final list = await _getList('posts?board=$board');
   return list.map(Post.fromJson).nonNulls.toList();
 }
 
-/// C 추천 결과 → B 게시글 상세: GET /posts?id=1 — 없으면 null
+/// C 추천 결과 · 알림 새 글 → B 게시글 상세: GET /posts?id=1 — 없으면 null
 Future<Post?> fetchPost(int id) async {
   final list = await _getList('posts?id=$id');
   return list.map(Post.fromJson).nonNulls.firstOrNull;
 }
 
-/// A 통합 홈 공지 접기 줄: GET /notices
+/// A-5 공지 접기 줄: GET /notices
 Future<List<Notice>> fetchNotices() async {
   final list = await _getList('notices');
   return list.map(Notice.fromJson).nonNulls.toList();
+}
+
+/// A-8 내 알림 조건 · E 알림: GET /alerts — 미리 걸어 둔 조건과 새 글
+Future<List<SearchAlert>> fetchAlerts() async {
+  final list = await _getList('alerts');
+  return list.map(SearchAlert.fromJson).nonNulls.toList();
 }
 
 /// C AI 검색 확인 시트: GET /aiResponses?id=1 — 미리 쓴 응답. 없으면 null(빈 상태)
@@ -107,7 +115,7 @@ Future<ConditionCheck?> fetchConditionCheck(int postId) async {
   return list.map(ConditionCheck.fromJson).nonNulls.firstOrNull;
 }
 
-/// B 게시글 상세 '사용 후기' 탭: GET /usageReviews?postId=1
+/// B 게시글 상세 '후기' 탭: GET /usageReviews?postId=1
 Future<List<UsageReview>> fetchUsageReviews(int postId) async {
   final list = await _getList('usageReviews?postId=$postId');
   return list.map(UsageReview.fromJson).nonNulls.toList();
@@ -121,3 +129,27 @@ typedef AiResponseLoader = Future<AiResponse?> Function(int id);
 typedef ConditionCheckLoader = Future<ConditionCheck?> Function(int postId);
 typedef PriceInfoLoader = Future<PriceInfo?> Function(int postId);
 typedef UsageReviewsLoader = Future<List<UsageReview>> Function(int postId);
+typedef AlertsLoader = Future<List<SearchAlert>> Function();
+
+/// 화면들이 함께 쓰는 loader 묶음 — 하단 메뉴의 네 화면과 C 시트에 한 번에 넘긴다.
+class AppLoaders {
+  const AppLoaders({
+    this.posts = fetchPosts,
+    this.post = fetchPost,
+    this.notices = fetchNotices,
+    this.alerts = fetchAlerts,
+    this.aiResponse = fetchAiResponse,
+    this.priceInfo = fetchPriceInfo,
+    this.conditionCheck = fetchConditionCheck,
+    this.usageReviews = fetchUsageReviews,
+  });
+
+  final PostsLoader posts;
+  final PostLoader post;
+  final NoticesLoader notices;
+  final AlertsLoader alerts;
+  final AiResponseLoader aiResponse;
+  final PriceInfoLoader priceInfo;
+  final ConditionCheckLoader conditionCheck;
+  final UsageReviewsLoader usageReviews;
+}

@@ -5,6 +5,8 @@
 // TODO: 문구는 디자인 가이드 글의 명칭 그대로 바꾼다.
 import 'package:flutter/material.dart';
 
+import 'theme.dart';
+
 /// 로딩 상태
 class LoadingView extends StatelessWidget {
   const LoadingView({super.key, this.label = '불러오는 중…'});
@@ -125,4 +127,303 @@ String formatWon(int price) {
     buf.write(digits[i]);
   }
   return '$buf원';
+}
+
+/// 그라데이션 헤더 — 하단 메뉴 네 화면 맨 위에 같은 모양으로 (P04 일관성)
+/// 아래쪽 모서리를 둥글게 깎고, 상태 표시줄 아래부터 내용을 그린다.
+class GradientHeader extends StatelessWidget {
+  const GradientHeader({
+    super.key,
+    required this.title,
+    this.subtitle = '',
+    this.actions = const [],
+    this.bottom,
+  });
+
+  final String title;
+  final String subtitle;
+  final List<Widget> actions;
+
+  /// 헤더 안 아래쪽에 넣을 위젯 (예: A-2 AI 조건 입력창)
+  final Widget? bottom;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: muleGradient,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 12, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: text.headlineSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        if (subtitle.isNotEmpty)
+                          Text(
+                            subtitle,
+                            style: text.bodyMedium?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.85),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  ...actions,
+                ],
+              ),
+              if (bottom case final bottom?) ...[
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: bottom,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 헤더 위 둥근 네모 아이콘 버튼 (반투명 흰 바탕)
+class HeaderIconButton extends StatelessWidget {
+  const HeaderIconButton({
+    super.key,
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    this.dot = false,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  /// true면 주황 점 — 새 소식이 있다는 표시만 (숫자를 세지 않는다)
+  final bool dot;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: IconButton(
+        onPressed: onPressed,
+        tooltip: tooltip,
+        style: IconButton.styleFrom(
+          backgroundColor: Colors.white.withValues(alpha: 0.2),
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        icon: Badge(
+          isLabelVisible: dot,
+          backgroundColor: muleOrange,
+          child: Icon(icon),
+        ),
+      ),
+    );
+  }
+}
+
+/// 구역 제목 줄 — "내 알림 조건 ··· 전체 보기"
+class SectionTitle extends StatelessWidget {
+  const SectionTitle(this.title, {super.key, this.action, this.onAction});
+
+  final String title;
+  final String? action;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 8, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ),
+          if (action case final action?)
+            TextButton(onPressed: onAction, child: Text(action)),
+        ],
+      ),
+    );
+  }
+}
+
+/// 둥근 사진 — 카드 · 목록에서 같은 모서리로
+class RoundedImage extends StatelessWidget {
+  const RoundedImage(
+    this.url, {
+    super.key,
+    this.width,
+    this.height,
+    this.radius = 12,
+  });
+
+  final String url;
+  final double? width;
+  final double? height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: ColoredBox(
+        color: mulePurple.withValues(alpha: 0.08),
+        child: NetImage(url, width: width, height: height),
+      ),
+    );
+  }
+}
+
+/// "새 2" 주황 배지 — 새 글 수는 db.json에 미리 정한 값 (세지 않는다)
+/// 화면낭독기는 "새 글 2개"로 읽는다.
+class NewBadge extends StatelessWidget {
+  const NewBadge({super.key, required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: '새 글 $count개',
+      excludeSemantics: true,
+      child: _box(),
+    );
+  }
+
+  Widget _box() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: muleOrange,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        '새 $count',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+/// 날짜 표시 — "2026-10-22" → "10월 22일" (글자만 바꾼다. 날짜 계산 아님)
+String formatDate(String ymd) {
+  final parts = ymd.split('-');
+  if (parts.length != 3) return ymd;
+  final month = int.tryParse(parts[1]);
+  final day = int.tryParse(parts[2]);
+  if (month == null || day == null) return ymd;
+  return '$month월 $day일';
+}
+
+/// 글자 크기 설정에 맞춘 높이 — 고정 높이 카드가 큰 글자에서 넘치지 않게
+/// [fixed]는 사진처럼 글자와 상관없는 부분, [text]는 글자가 차지하는 부분
+double scaledHeight(BuildContext context, double fixed, double text) =>
+    fixed + MediaQuery.textScalerOf(context).scale(text);
+
+/// 쌓기 화면(B)의 위쪽 바 — 그라데이션 바탕 · 흰 글자 · 왼쪽 위 뒤로가기 (B-1)
+AppBar gradientAppBar({required Widget title}) => AppBar(
+  leading: const BackButton(),
+  title: title,
+  foregroundColor: Colors.white,
+  backgroundColor: Colors.transparent,
+  flexibleSpace: const DecoratedBox(
+    decoration: BoxDecoration(gradient: muleGradient),
+  ),
+);
+
+/// 당겨서 새로고침용 — 실패해도 RefreshIndicator가 멈추지 않게 오류는 여기서 삼키고,
+/// 오류 표시는 FutureBuilder(ErrorView)가 맡는다.
+Future<void> settle(Future<Object?> future) async {
+  try {
+    await future;
+  } on Object {
+    // 화면의 ErrorView가 보여 준다
+  }
+}
+
+/// 알약 버튼 — A-3 예시 조건 · A-8 알림 조건. 고르면 보라 바탕.
+/// (Chip 계열은 웹(CanvasKit)에서 한글 글꼴이 늦게 불러와질 때 글자 폭을 짧게 재서 가로 줄 안에서 글자가 잘린다
+///  → 글자 크기대로 자라는 상자로 그린다)
+class PillButton extends StatelessWidget {
+  const PillButton({
+    super.key,
+    required this.label,
+    required this.onTap,
+    this.selected = false,
+    this.icon,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final bool selected;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = selected ? Colors.white : muleInk;
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: Material(
+        color: selected ? mulePurple : Colors.white,
+        shape: StadiumBorder(
+          side: BorderSide(color: selected ? mulePurple : muleLine),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const StadiumBorder(),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(icon == null ? 16 : 12, 9, 16, 9),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon case final icon?) ...[
+                  Icon(icon, size: 16, color: selected ? fg : mulePurple),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: fg,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

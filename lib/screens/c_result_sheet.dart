@@ -4,14 +4,14 @@
 // | 번호 | Flutter 위젯명 | 비즈니스 명칭(한글) | 정보 전달 기준 | 원칙 | 편의성 포인트 |
 // |---|---|---|---|---|---|
 // | C-1 | Text | 내가 말한 문장 | 시트 맨 위 · 작게 · 회색 | P01 | 무엇을 물었는지 기억 안 해도 됨 |
-// | C-2 | Wrap · InputChip | AI가 알아들은 조건 | 예: [일렉기타] [펜더] [60만 원 이하] [앰프 빼기 X] · 빼는 단어는 빨간 테두리 · 시트에서 가장 크게 | P05 · #1 #2 | 결과를 보기 전에 오해를 고침 |
-// | C-3 | TextButton → showDialog | 빼는 단어 추가 | 조건 줄 끝 "+ 빼는 단어" | P05 · #2 요청 | "esp"→"lespaul" 같은 엉뚱한 결과를 미리 막음 |
-// | C-4 | Card · Text | AI 조언 (예산 맞춤) | 조건 아래 · 2–3문장 · 예산 대비 핵심만 굵게 | P10 · #7 | 시세 · 상태를 혼자 따져 보지 않아도 됨 |
+// | C-2 | Wrap · InputChip | AI가 알아들은 조건 | 예: [일렉기타] [펜더] [60만 원 이하] [앰프 빼기 X] · 빼는 단어는 빨간 테두리 · 시트에서 가장 크게 · 뺀 뒤 "되돌리기" | P05 · P03 · #1 #2 | 결과를 보기 전에 오해를 고침 · 잘못 빼도 되돌림 |
+// | C-3 | TextButton → showDialog | 빼는 단어 추가 | 조건 줄 끝 "+ 빼는 단어" · 비어 있으면 "추가" 꺼짐 | P05 · #2 요청 | "esp"→"lespaul" 같은 엉뚱한 결과를 미리 막음 |
+// | C-4 | Card · Text | AI 조언 (예산 맞춤) | 조건 아래 · 2–3문장 · 예산 대비 핵심만 굵게 · "미리 써 둔 예시 답변 · 참고용" 표시 | P10 · #7 | 시세 · 상태를 혼자 따져 보지 않아도 됨 |
 // | C-5 | ListView · ListTile | 추천 결과 목록 | 게시판 라벨 → 제목 → 가격 → 추천 이유 줄 | P06 · P01 | 왜 나왔는지 상세에 안 들어가도 앎 |
 // | C-6 | FutureBuilder · LoadingView · ErrorView · EmptyView | AI 응답 상태 안내 | 찾는 중 → 오류 + 다시 시도 → 결과 없음(조건 하나 빼기 제안) | P09 | 결과 0건에서 막히지 않음 |
 // | C-7 | FilledButton · OutlinedButton | 다시 찾기 · 알림 받기 | 시트 맨 아래 한 줄 | P03 · P04 | 처음부터 다시 말하지 않아도 됨 · 검색과 알림 조건을 두 번 설정 안 함 |
 // ────────────────────────────────────────────────────────────────────────────────────────
-// 전환: A → C 덮기(showModalBottomSheet, A-2 보내기) · C → B 쌓기(Navigator.push, C-5 추천 결과) — B에서 뒤로 가면 시트로.
+// 전환: A · E → C 덮기(showModalBottomSheet, A-2 보내기 · 알림 조건의 AI 검색) · C → B 쌓기(Navigator.push, C-5 추천 결과) — B에서 뒤로 가면 시트로.
 // 적응형: 넓은 화면에서 시트 최대 너비 720dp로 가운데 정렬.
 // 상태관리 포인트(가이드 5장): S1 입력 문장 · S3 서버 응답 상태 · S4 AI가 알아들은 조건 목록 · S5 AI 조언 펼침 / 접힘 → `grep -rn "STATE:" lib`
 //
@@ -23,6 +23,7 @@ import 'package:flutter/material.dart';
 
 import '../api.dart';
 import '../models.dart';
+import '../theme.dart';
 import '../widgets.dart';
 import 'b_detail_screen.dart';
 
@@ -42,11 +43,7 @@ class AiSearchConfirmSheet extends StatefulWidget {
     super.key,
     required this.query,
     this.responseId = 1,
-    this.loadAiResponse = fetchAiResponse,
-    this.loadPost = fetchPost,
-    this.loadPriceInfo = fetchPriceInfo,
-    this.loadConditionCheck = fetchConditionCheck,
-    this.loadUsageReviews = fetchUsageReviews,
+    this.loaders = const AppLoaders(),
   });
 
   /// A-2에서 보낸 문장 — C-1에 그대로 보여 준다 (해석하지 않는다)
@@ -55,23 +52,15 @@ class AiSearchConfirmSheet extends StatefulWidget {
   /// 미리 쓴 응답 번호 — 1: 결과 있음 · 2: 결과 없음(예시 조건 칩 2번)
   final int responseId;
 
-  /// 데이터를 가져오는 함수 — 앱은 기본값(GET), 테스트는 가짜 함수를 넣는다.
-  final AiResponseLoader loadAiResponse;
-  final PostLoader loadPost;
-  final PriceInfoLoader loadPriceInfo;
-  final ConditionCheckLoader loadConditionCheck;
-  final UsageReviewsLoader loadUsageReviews;
+  /// 데이터를 가져오는 함수 묶음 — 앱은 기본값(GET), 테스트는 가짜 함수를 넣는다.
+  final AppLoaders loaders;
 
   /// 덮기(modal): 통합 홈 위에 시트를 띄운다.
   static Future<void> show(
     BuildContext context, {
     required String query,
     int responseId = 1,
-    AiResponseLoader loadAiResponse = fetchAiResponse,
-    PostLoader loadPost = fetchPost,
-    PriceInfoLoader loadPriceInfo = fetchPriceInfo,
-    ConditionCheckLoader loadConditionCheck = fetchConditionCheck,
-    UsageReviewsLoader loadUsageReviews = fetchUsageReviews,
+    AppLoaders loaders = const AppLoaders(),
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -84,11 +73,7 @@ class AiSearchConfirmSheet extends StatefulWidget {
         child: AiSearchConfirmSheet(
           query: query,
           responseId: responseId,
-          loadAiResponse: loadAiResponse,
-          loadPost: loadPost,
-          loadPriceInfo: loadPriceInfo,
-          loadConditionCheck: loadConditionCheck,
-          loadUsageReviews: loadUsageReviews,
+          loaders: loaders,
         ),
       ),
     );
@@ -111,7 +96,7 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
   var _adviceExpanded = false;
 
   Future<AiResponse?> _load() async {
-    final response = await widget.loadAiResponse(widget.responseId);
+    final response = await widget.loaders.aiResponse(widget.responseId);
     _conditions ??= [...?response?.conditions];
     return response;
   }
@@ -124,11 +109,27 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
     });
   }
 
+  /// C-2 조건 빼기 — 잘못 눌러도 SnackBar의 "되돌리기"로 같은 자리에 돌려놓는다
   void _removeCondition(AiCondition condition) {
+    final list = _conditions;
+    if (list == null) return;
+    final index = list.indexOf(condition);
     // STATE: S4 AI가 알아들은 조건 목록 → C-2
     setState(() {
-      _conditions?.remove(condition);
+      list.remove(condition);
     });
+    _showSnack(
+      '"${condition.type == 'exclude' ? '${condition.label} 빼기' : condition.label}" 조건을 뺐어요',
+      action: SnackBarAction(
+        label: '되돌리기',
+        onPressed: () {
+          // STATE: S4 AI가 알아들은 조건 목록 → C-2 (되돌리기)
+          setState(() {
+            list.insert(index.clamp(0, list.length), condition);
+          });
+        },
+      ), // C-2 P03 되돌리기
+    );
   }
 
   Future<void> _addExcludedWord() async {
@@ -158,37 +159,19 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
     _showSnack('이 조건으로 새 글 알림을 받아요 (데모: 실제 등록은 없습니다)');
   }
 
-  void _showSnack(String message) {
+  void _showSnack(String message, {SnackBarAction? action}) {
     _messenger.currentState
       ?..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+      ..showSnackBar(SnackBar(content: Text(message), action: action));
   }
 
   /// C-5 추천 결과 → B 게시글 상세 (쌓기 — 뒤로 가면 이 시트로 돌아온다)
-  Future<void> _openResult(AiResult result) async {
-    final Post? post;
-    try {
-      post = await widget.loadPost(result.postId);
-    } on Exception catch (e) {
-      _showSnack('게시글을 열지 못했습니다. $e');
-      return;
-    }
-    if (!mounted) return;
-    if (post == null) {
-      _showSnack('게시글을 찾지 못했습니다.');
-      return;
-    }
-    final found = post; // 클로저 안에서도 Post(널 아님)로 쓰기 위해
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PostDetailScreen(
-          post: found,
-          reasons: result.reasons, // → B-3 내 조건과 맞는 이유
-          loadConditionCheck: widget.loadConditionCheck,
-          loadPriceInfo: widget.loadPriceInfo,
-          loadUsageReviews: widget.loadUsageReviews,
-        ),
-      ),
+  void _openResult(AiResult result) {
+    openPostById(
+      context,
+      widget.loaders,
+      result.postId,
+      reasons: result.reasons, // → B-3 내 조건과 맞는 이유
     );
   }
 
@@ -206,6 +189,19 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             children: [
               // STATE: S1 입력 문장 → A-2 · C-1
+              Row(
+                children: [
+                  const Icon(Icons.auto_awesome, size: 18, color: mulePurple),
+                  const SizedBox(width: 6),
+                  Text(
+                    'AI가 이렇게 알아들었어요',
+                    style: text.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
               Text(
                 '“${widget.query}”',
                 style: text.bodySmall?.copyWith(color: colors.onSurfaceVariant),
@@ -307,40 +303,56 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
           expanded: _adviceExpanded,
           onToggle: _toggleAdvice,
         ), // C-4 P10
-      const Divider(height: 24),
+      Padding(
+        padding: const EdgeInsets.only(top: 20, bottom: 8),
+        child: Text(
+          '추천 결과',
+          style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
+      ),
       if (results.isEmpty)
         const EmptyView(message: '조건에 맞는 글이 없습니다.\n조건을 하나 빼 보세요.') // C-6 P09
       else
-        ListView.builder(
+        ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: results.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 10),
           itemBuilder: (context, i) {
             final r = results[i];
-            return ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    r.board,
-                    style: text.labelMedium?.copyWith(color: colors.primary),
-                  ),
-                  Text(r.title, style: text.titleMedium),
-                ],
+            return Card(
+              clipBehavior: Clip.antiAlias,
+              child: ListTile(
+                contentPadding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      r.board,
+                      style: text.labelMedium?.copyWith(color: colors.primary),
+                    ),
+                    Text(r.title, style: text.titleMedium),
+                  ],
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      formatWon(r.price),
+                      style: text.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: muleInk,
+                      ),
+                    ),
+                    Text(
+                      r.reasons.join(' · '),
+                      style: const TextStyle(color: muleOrange),
+                    ), // C-5 P01 추천 이유 줄
+                  ],
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _openResult(r),
               ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    formatWon(r.price),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(r.reasons.join(' · ')), // C-5 P01 추천 이유 줄
-                ],
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _openResult(r),
             );
           },
         ), // C-5 P06
@@ -368,7 +380,8 @@ class _AdviceCard extends StatelessWidget {
     final head = cut < 0 ? advice : advice.substring(0, cut + 1);
     final rest = cut < 0 ? '' : advice.substring(cut + 1);
     return Card(
-      margin: EdgeInsets.zero,
+      color: mulePurple.withValues(alpha: 0.07),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
         child: Column(
@@ -400,12 +413,19 @@ class _AdviceCard extends StatelessWidget {
               maxLines: expanded ? null : 2,
               overflow: expanded ? null : TextOverflow.ellipsis,
             ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: onToggle,
-                child: Text(expanded ? '접기' : '더 보기'),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '미리 써 둔 예시 답변이에요 · 참고용',
+                    style: text.labelSmall?.copyWith(color: muleSubtle),
+                  ), // C-4 P10 AI 답변의 한계를 알림
+                ),
+                TextButton(
+                  onPressed: onToggle,
+                  child: Text(expanded ? '접기' : '더 보기'),
+                ),
+              ],
             ),
           ],
         ),
@@ -439,17 +459,25 @@ class _ExcludedWordDialogState extends State<_ExcludedWordDialog> {
         controller: _word,
         autofocus: true,
         decoration: const InputDecoration(hintText: '예: 앰프, lespaul'),
-        onSubmitted: (value) => Navigator.of(context).pop(value),
+        onSubmitted: (value) {
+          if (value.trim().isNotEmpty) Navigator.of(context).pop(value);
+        },
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('취소'),
         ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(_word.text),
-          child: const Text('추가'),
-        ),
+        // 비어 있으면 "추가"를 끈다 — 빈 조건이 생기지 않게
+        ValueListenableBuilder(
+          valueListenable: _word,
+          builder: (context, value, _) => FilledButton(
+            onPressed: value.text.trim().isEmpty
+                ? null
+                : () => Navigator.of(context).pop(_word.text),
+            child: const Text('추가'),
+          ),
+        ), // C-3 P05
       ],
     );
   }

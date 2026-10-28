@@ -463,5 +463,91 @@
         }
       ]
     }
+  ],
+  "alerts": [
+    {
+      "id": 1,
+      "name": "펜더 일렉",
+      "query": "60만 원 이하 펜더 일렉, 앰프 빼고",
+      "responseId": 1,
+      "labels": [
+        "일렉기타",
+        "펜더",
+        "60만 원 이하",
+        "앰프 빼기"
+      ],
+      "newCount": 2,
+      "matches": [
+        {
+          "postId": 1,
+          "board": "장터",
+          "title": "펜더 멕시코 플레이어 스트랫 선버스트",
+          "price": 580000,
+          "image": "https://picsum.photos/seed/mubase1/400/300"
+        },
+        {
+          "postId": 2,
+          "board": "장터",
+          "title": "펜더 재팬 텔레캐스터 TL-71 내추럴",
+          "price": 640000,
+          "image": "https://picsum.photos/seed/mubase2/400/300"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "재즈베이스",
+      "query": "70만 원 이하 펜더 재즈베이스",
+      "responseId": 1,
+      "labels": [
+        "베이스",
+        "펜더",
+        "70만 원 이하"
+      ],
+      "newCount": 1,
+      "matches": [
+        {
+          "postId": 6,
+          "board": "장터",
+          "title": "펜더 재즈베이스 플레이어 3톤",
+          "price": 690000,
+          "image": "https://picsum.photos/seed/mubase6/400/300"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "베이스 레슨",
+      "query": "베이스 레슨 초보",
+      "responseId": 1,
+      "labels": [
+        "레슨",
+        "베이스",
+        "초보"
+      ],
+      "newCount": 1,
+      "matches": [
+        {
+          "postId": 9,
+          "board": "레슨",
+          "title": "초보 베이스 1:1 레슨 (주 1회)",
+          "price": 160000,
+          "image": "https://picsum.photos/seed/mubase9/400/300"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "강남 합주실",
+      "query": "강남 주말 드럼 합주실 1만 원 이하",
+      "responseId": 2,
+      "labels": [
+        "합주실",
+        "서울 강남",
+        "1만 원 이하"
+      ],
+      "newCount": 0,
+      "matches": []
+    }
   ]
 }
