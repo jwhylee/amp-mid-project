@@ -21,6 +21,9 @@ List<String> _strings(Object? json) => switch (json) {
   _ => const [],
 };
 
+/// 문자열 필드: 없거나 모양이 다르면 빈 문자열
+String _string(Object? json) => json is String ? json : '';
+
 /// 객체 배열 필드: 항목마다 fromJson을 적용하고 형식이 틀린 항목은 뺀다
 List<T> _objects<T extends Object>(
   Object? json,
@@ -129,6 +132,7 @@ class AlertMatch {
     required this.title,
     required this.price,
     required this.image,
+    this.category = '',
   });
 
   final int postId;
@@ -138,6 +142,9 @@ class AlertMatch {
   final String title;
   final int price;
   final String image;
+
+  /// 카테고리(예: "일렉기타") — 자리표시 그림을 고를 때만 쓴다
+  final String category;
 
   static AlertMatch? fromJson(Object? json) {
     return switch (json) {
@@ -154,6 +161,7 @@ class AlertMatch {
           title: title,
           price: price,
           image: image,
+          category: _string(json['category']),
         ),
       _ => null,
     };
@@ -272,6 +280,7 @@ class AiResponse {
     this.advice = '',
     this.conditions = const [],
     this.results = const [],
+    this.consulting,
   });
 
   final int id;
@@ -281,6 +290,9 @@ class AiResponse {
   final String advice;
   final List<AiCondition> conditions;
   final List<AiResult> results;
+
+  /// C-4 AI 조언 컨설팅 — 없으면 null (그때는 advice 문장만)
+  final AiConsulting? consulting;
 
   static AiResponse? fromJson(Object? json) {
     return switch (json) {
@@ -293,9 +305,109 @@ class AiResponse {
         },
         conditions: _objects(json['conditions'], AiCondition.fromJson),
         results: _objects(json['results'], AiResult.fromJson),
+        consulting: AiConsulting.fromJson(json['consulting']),
       ),
       _ => null,
     };
+  }
+}
+
+/// C-4 1순위 추천 — 제목 · 한 줄 요약 · 이유 3개 (모두 미리 쓴 문장)
+class ConsultingPick {
+  const ConsultingPick({
+    required this.postId,
+    required this.title,
+    required this.headline,
+    this.reasons = const [],
+  });
+
+  final int postId;
+  final String title;
+  final String headline;
+  final List<String> reasons;
+
+  static ConsultingPick? fromJson(Object? json) {
+    return switch (json) {
+      {
+        'postId': int postId,
+        'title': String title,
+        'headline': String headline,
+      } =>
+        ConsultingPick(
+          postId: postId,
+          title: title,
+          headline: headline,
+          reasons: _strings(json['reasons']),
+        ),
+      _ => null,
+    };
+  }
+}
+
+/// C-4 비교표 한 줄 — market · condition · note도 미리 쓴 문자열 (앱에서 비교 · 정렬하지 않는다)
+class ConsultingRow {
+  const ConsultingRow({
+    required this.postId,
+    required this.title,
+    required this.price,
+    this.market = '',
+    this.condition = '',
+    this.note = '',
+  });
+
+  final int postId;
+  final String title;
+  final int price;
+  final String market;
+  final String condition;
+  final String note;
+
+  static ConsultingRow? fromJson(Object? json) {
+    return switch (json) {
+      {'postId': int postId, 'title': String title, 'price': int price} =>
+        ConsultingRow(
+          postId: postId,
+          title: title,
+          price: price,
+          market: _string(json['market']),
+          condition: _string(json['condition']),
+          note: _string(json['note']),
+        ),
+      _ => null,
+    };
+  }
+}
+
+/// C-4 AI 조언 컨설팅 — aiResponses[*].consulting 그대로 (목적 → 1순위 → 비교 → 확인할 것 → 예산 바꾸면 → 근거)
+class AiConsulting {
+  const AiConsulting({
+    this.goal = const [],
+    this.pick,
+    this.compare = const [],
+    this.checklist = const [],
+    this.budgetTips = const [],
+    this.basis = '',
+  });
+
+  final List<String> goal;
+
+  /// 1순위 — 결과 없음 응답(id=2)이면 null
+  final ConsultingPick? pick;
+  final List<ConsultingRow> compare;
+  final List<String> checklist;
+  final List<String> budgetTips;
+  final String basis;
+
+  static AiConsulting? fromJson(Object? json) {
+    if (json is! Map<String, Object?>) return null;
+    return AiConsulting(
+      goal: _strings(json['goal']),
+      pick: ConsultingPick.fromJson(json['pick']),
+      compare: _objects(json['compare'], ConsultingRow.fromJson),
+      checklist: _strings(json['checklist']),
+      budgetTips: _strings(json['budgetTips']),
+      basis: _string(json['basis']),
+    );
   }
 }
 
@@ -306,12 +418,16 @@ class PriceInfo {
     required this.low,
     required this.avg,
     required this.high,
+    this.label = '',
   });
 
   final int postId;
   final int low;
   final int avg;
   final int high;
+
+  /// B-5 한 줄 판단 — 미리 쓴 문장 (예: "시세 평균보다 2만 원 싸요")
+  final String label;
 
   static PriceInfo? fromJson(Object? json) {
     return switch (json) {
@@ -321,7 +437,13 @@ class PriceInfo {
         'avg': int avg,
         'high': int high,
       } =>
-        PriceInfo(postId: postId, low: low, avg: avg, high: high),
+        PriceInfo(
+          postId: postId,
+          low: low,
+          avg: avg,
+          high: high,
+          label: _string(json['label']),
+        ),
       _ => null,
     };
   }
@@ -355,6 +477,12 @@ class UsageReview {
   }
 }
 
+/// 0–1 비율 필드 — 숫자가 아니거나 범위 밖이면 null
+double? _ratio(Object? json) => switch (json) {
+  num n when n >= 0 && n <= 1 => n.toDouble(),
+  _ => null,
+};
+
 /// AI 상태 체크 항목 하나 — 사진 위 번호(no) · 부위 · 상태(좋음 · 보통 · 확인 필요) · 설명
 class ConditionCheckItem {
   const ConditionCheckItem({
@@ -362,12 +490,18 @@ class ConditionCheckItem {
     required this.part,
     required this.level,
     required this.note,
+    this.x,
+    this.y,
   });
 
   final int no;
   final String part;
   final String level;
   final String note;
+
+  /// 사진 위 번호 위치(0–1 비율, db.json에 미리 씀) — 없으면 사진 왼쪽 위에 모은다
+  final double? x;
+  final double? y;
 
   static ConditionCheckItem? fromJson(Object? json) {
     return switch (json) {
@@ -377,7 +511,14 @@ class ConditionCheckItem {
         'level': String level,
         'note': String note,
       } =>
-        ConditionCheckItem(no: no, part: part, level: level, note: note),
+        ConditionCheckItem(
+          no: no,
+          part: part,
+          level: level,
+          note: note,
+          x: _ratio(json['x']),
+          y: _ratio(json['y']),
+        ),
       _ => null,
     };
   }

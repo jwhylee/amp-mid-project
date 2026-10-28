@@ -5,7 +5,7 @@
 // |---|---|---|---|---|---|
 // | D-1 | GradientHeader | 게시판 머리 | 화면 이름 + 한 줄 설명 | P04 · 모든 메뉴 같은 자리 | 지금 어느 메뉴인지 바로 앎 |
 // | D-2 | TabBar(알약) | 게시판 탭 | 장터 · 합주실 · 레슨 · 구인 · 공연 순 | P02 · 현행 잘된 점 유지 | 활동별 게시판을 탭 한 번에 이동 |
-// | D-3 | ListView / GridView · Card | 게시글 카드 목록 | 사진 → 카테고리 · 지역 · 날짜 → 제목 → 가격(굵게) | P08 · 판단 정보만 | 목록에서 바로 가격 · 지역 비교 |
+// | D-3 | ListView / GridView · Card | 게시글 카드 목록 | 카테고리 그림 → 카테고리 · 지역 · 날짜 → 제목 → 가격(굵게) | P08 · P02 · 판단 정보만 | 목록에서 바로 가격 · 지역 비교 |
 // | D-4 | FutureBuilder · LoadingView · ErrorView · EmptyView · RefreshIndicator | 목록 상태 안내 | 로딩 → 오류 + 다시 시도 → 빈 목록 안내 · 아래로 당겨 새로고침 | P09 · 복구 방법 제시 | 오류 때 앱을 껐다 켜지 않아도 됨 |
 // ────────────────────────────────────────────────────────────────────────────────────────
 // 전환: D → B 쌓기(Navigator.push, 게시글 카드) · 게시판 탭은 화면 안 표시 변화(옆으로 TabBar).
@@ -244,7 +244,7 @@ class PostCard extends StatelessWidget {
                     Expanded(
                       child: SizedBox(
                         width: double.infinity,
-                        child: RoundedImage(post.image),
+                        child: CategoryArt(post.category), // D-3 P02
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -253,7 +253,11 @@ class PostCard extends StatelessWidget {
                 )
               : Row(
                   children: [
-                    RoundedImage(post.image, width: 88, height: 88),
+                    CategoryArt(
+                      post.category,
+                      width: 88,
+                      height: 88,
+                    ), // D-3 P02
                     const SizedBox(width: 12),
                     Expanded(child: info),
                   ],

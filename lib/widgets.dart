@@ -93,30 +93,6 @@ class EmptyView extends StatelessWidget {
   }
 }
 
-/// 네트워크 이미지 — 실패해도 화면은 그대로 보이게
-class NetImage extends StatelessWidget {
-  const NetImage(this.url, {super.key, this.width, this.height});
-
-  final String url;
-  final double? width;
-  final double? height;
-
-  @override
-  Widget build(BuildContext context) {
-    return Image.network(
-      url,
-      width: width,
-      height: height,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stack) => SizedBox(
-        width: width,
-        height: height,
-        child: const Icon(Icons.image_outlined, size: 40),
-      ),
-    );
-  }
-}
-
 /// 가격 표시 — 580000 → "580,000원", 0 → "가격 없음" (표시 형식만 바꾼다. 계산 아님)
 String formatWon(int price) {
   if (price <= 0) return '가격 없음';
@@ -274,34 +250,87 @@ class SectionTitle extends StatelessWidget {
   }
 }
 
-/// 둥근 사진 — 카드 · 목록에서 같은 모서리로
-class RoundedImage extends StatelessWidget {
-  const RoundedImage(
-    this.url, {
+/// 카테고리 자리표시 그림 — 악기와 상관없는 풍경 사진 대신, 카테고리 아이콘을 그라데이션 위에 그린다 (로컬 위젯 · 새 패키지 없음)
+/// 높이가 충분하면 카테고리 이름도 함께 쓴다. 모르는 카테고리는 음표.
+class CategoryArt extends StatelessWidget {
+  const CategoryArt(
+    this.category, {
     super.key,
     this.width,
     this.height,
     this.radius = 12,
   });
 
-  final String url;
+  final String category;
   final double? width;
   final double? height;
   final double radius;
 
+  static const _styles = {
+    '일렉기타': (Icons.music_note, [muleMagenta, mulePurple]),
+    '베이스': (Icons.queue_music, [mulePurple, muleBlue]),
+    '앰프': (Icons.speaker, [muleBlue, Color(0xFF2BA8C0)]),
+    '합주실': (Icons.graphic_eq, [muleOrange, muleMagenta]),
+    '레슨': (Icons.school_outlined, [Color(0xFF2E9E6B), muleBlue]),
+    '구인': (Icons.group_add_outlined, [Color(0xFFF2A11B), muleOrange]),
+    '공연': (Icons.mic_none, [muleMagenta, muleOrange]),
+  };
+
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: ColoredBox(
-        color: mulePurple.withValues(alpha: 0.08),
-        child: NetImage(url, width: width, height: height),
+    final (icon, colors) =
+        _styles[category] ?? (Icons.music_note, [mulePurple, muleBlue]);
+    return Semantics(
+      label: '$category 그림',
+      image: true,
+      excludeSemantics: true,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: SizedBox(
+          width: width,
+          height: height,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: colors,
+              ),
+            ),
+            child: LayoutBuilder(
+              builder: (context, box) {
+                final side = box.biggest.shortestSide;
+                final showLabel = side.isFinite && side >= 90;
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        icon,
+                        color: Colors.white.withValues(alpha: 0.9),
+                        size: side.isFinite ? side * 0.42 : 40,
+                      ),
+                      if (showLabel)
+                        Text(
+                          category,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-/// "새 2" 주황 배지 — 새 글 수는 db.json에 미리 정한 값 (세지 않는다)
+/// 새 글 수 주황 배지 — 숫자만("2"). 값은 db.json에 미리 정한 그대로 (세지 않는다)
 /// 화면낭독기는 "새 글 2개"로 읽는다.
 class NewBadge extends StatelessWidget {
   const NewBadge({super.key, required this.count});
@@ -319,13 +348,15 @@ class NewBadge extends StatelessWidget {
 
   Widget _box() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      constraints: const BoxConstraints(minWidth: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
       decoration: BoxDecoration(
         color: muleOrange,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
-        '새 $count',
+        '$count',
+        textAlign: TextAlign.center,
         style: const TextStyle(
           color: Colors.white,
           fontSize: 11,
@@ -351,14 +382,17 @@ String formatDate(String ymd) {
 double scaledHeight(BuildContext context, double fixed, double text) =>
     fixed + MediaQuery.textScalerOf(context).scale(text);
 
-/// 쌓기 화면(B)의 위쪽 바 — 그라데이션 바탕 · 흰 글자 · 왼쪽 위 뒤로가기 (B-1)
-AppBar gradientAppBar({required Widget title}) => AppBar(
+/// 쌓기 화면(B)의 위쪽 바 — 밝은 바탕 · 진한 화살표와 제목 · 왼쪽 위 뒤로가기 (B-1)
+/// (흰 글자는 그라데이션이 그려지지 않는 환경에서 밝은 바탕에 묻혀 안 보였다 → 대비를 바탕색에 맡기지 않는다)
+AppBar stackAppBar({required Widget title}) => AppBar(
   leading: const BackButton(),
   title: title,
-  foregroundColor: Colors.white,
-  backgroundColor: Colors.transparent,
-  flexibleSpace: const DecoratedBox(
-    decoration: BoxDecoration(gradient: muleGradient),
+  foregroundColor: muleInk,
+  backgroundColor: muleBackground,
+  titleTextStyle: const TextStyle(
+    color: muleInk,
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
   ),
 );
 

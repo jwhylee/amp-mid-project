@@ -8,8 +8,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mid_project_template/api.dart';
 import 'package:mid_project_template/models.dart';
 import 'package:mid_project_template/screens/b_detail_screen.dart';
+import 'package:mid_project_template/screens/c_result_sheet.dart';
 import 'package:mid_project_template/screens/main_shell.dart';
 import 'package:mid_project_template/theme.dart';
+import 'package:mid_project_template/widgets.dart';
 
 const _posts = [
   Post(
@@ -52,12 +54,24 @@ Future<ConditionCheck?> _loadCheck(int id) async => ConditionCheck(
   postId: id,
   image: '',
   items: const [
-    ConditionCheckItem(no: 1, part: '바디 스크래치', level: '보통', note: '작은 스크래치'),
+    ConditionCheckItem(
+      no: 1,
+      part: '바디 스크래치',
+      level: '보통',
+      note: '작은 스크래치',
+      x: 0.3,
+      y: 0.6,
+    ),
     ConditionCheckItem(no: 2, part: '잭 소켓', level: '확인 필요', note: '판매자에게 물어보기'),
   ],
 );
-Future<PriceInfo?> _loadPrice(int id) async =>
-    PriceInfo(postId: id, low: 480000, avg: 560000, high: 650000);
+Future<PriceInfo?> _loadPrice(int id) async => PriceInfo(
+  postId: id,
+  low: 480000,
+  avg: 560000,
+  high: 650000,
+  label: '시세 평균보다 2만 원 싸요',
+);
 
 const _aiFound = AiResponse(
   id: 1,
@@ -77,6 +91,50 @@ const _aiFound = AiResponse(
       reasons: ['일렉기타', '펜더', '앰프 제외'],
     ),
   ],
+);
+
+const _consulting = AiConsulting(
+  goal: ['예산 60만 원', '합주용 일렉기타'],
+  pick: ConsultingPick(
+    postId: 1,
+    title: '펜더 멕시코 스트랫',
+    headline: '예산 안에서 가장 균형이 좋아요',
+    reasons: ['시세 평균보다 2만 원 싸요'],
+  ),
+  compare: [
+    ConsultingRow(
+      postId: 2,
+      title: '재팬 텔레캐스터',
+      price: 640000,
+      market: '평균보다 2만 원 ↑',
+      condition: '좋음 2',
+      note: '예산 4만 원 초과',
+    ),
+  ],
+  checklist: ['잭 소켓 상태 물어보기'],
+  budgetTips: ['4만 원 더 쓸 수 있다면 → 텔레캐스터'],
+  basis: '시세 · 후기를 바탕으로 미리 써 둔 예시 답변이에요',
+);
+
+const _aiConsult = AiResponse(
+  id: 1,
+  query: '60만 원 이하 펜더 일렉, 앰프 빼고',
+  consulting: _consulting,
+  conditions: [AiCondition(type: 'category', label: '일렉기타')],
+  results: [
+    AiResult(postId: 1, board: '장터', title: '게시글 1', price: 580000),
+    AiResult(postId: 2, board: '장터', title: '게시글 2', price: 690000),
+  ],
+);
+
+const _aiEmptyConsult = AiResponse(
+  id: 2,
+  query: '강남 주말 드럼 합주실 1만 원 이하',
+  consulting: AiConsulting(
+    goal: ['강남', '주말 드럼 합주실'],
+    budgetTips: ['시간당 1.8만 원까지 올린다면 → A룸'],
+    basis: '합주실 게시글을 바탕으로 미리 써 둔 예시 답변이에요',
+  ),
 );
 
 const _aiEmpty = AiResponse(
@@ -230,7 +288,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('펜더 일렉'), findsOneWidget);
-    expect(find.text('새 2'), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(NewBadge), matching: find.text('2')),
+      findsOneWidget,
+    ); // 숫자만
     await tester.tap(find.text('게시글 1'));
     await tester.pumpAndSettle();
     expect(find.byType(BackButton), findsOneWidget); // A → B push
@@ -542,6 +603,103 @@ void main() {
     expect(find.textContaining('다음 불러오기부터 적용돼요'), findsOneWidget);
   });
 
+  testWidgets('C-4 AI 조언 컨설팅: 접힘 → 자세히 보기 → 비교표 → B · 1순위 없는 응답', (
+    tester,
+  ) async {
+    _setSize(tester, const Size(400, 1400));
+    await tester.pumpWidget(
+      _app(
+        (_) async => _posts,
+        loadAi: (id) async => id == 2 ? _aiEmptyConsult : _aiConsult,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _sendQuery(tester, '아무 문장');
+
+    expect(find.text('추천 결과 2개 · 장터'), findsOneWidget); // C-2 결과 수 · 게시판
+    expect(find.text('예산 60만 원'), findsOneWidget); // ① 목적 요약
+    expect(find.textContaining('1순위 · '), findsOneWidget); // ② 1순위 한 줄
+    expect(find.text('사기 전 확인할 것'), findsNothing); // 접힘
+
+    await tester.tap(find.text('자세히 보기'));
+    await tester.pumpAndSettle();
+    expect(find.text('시세 평균보다 2만 원 싸요'), findsOneWidget); // ② 이유
+    expect(find.text('잭 소켓 상태 물어보기'), findsOneWidget); // ④
+    expect(find.text('4만 원 더 쓸 수 있다면 → 텔레캐스터'), findsOneWidget); // ⑤
+    expect(find.textContaining('시세 · 후기를 바탕으로'), findsOneWidget); // ⑥
+
+    await tester.tap(find.text('재팬 텔레캐스터')); // ③ 비교표 → B
+    await tester.pumpAndSettle();
+    expect(find.text('판매자에게 연락하기'), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.text('AI가 이렇게 알아들었어요'))).pop();
+    await tester.pumpAndSettle();
+
+    await _sendQuery(tester, '강남 주말 드럼 합주실 1만 원 이하');
+    expect(find.text('추천 결과 없음'), findsOneWidget);
+    expect(find.textContaining('1순위 · '), findsNothing); // ②③④ 숨김
+    await tester.tap(find.text('자세히 보기'));
+    await tester.pumpAndSettle();
+    expect(find.text('시간당 1.8만 원까지 올린다면 → A룸'), findsOneWidget); // ⑤
+    expect(find.text('비교'), findsNothing);
+  });
+
+  testWidgets('C-8 닫기 확인 · C-5 조건 변경 배너', (tester) async {
+    _setSize(tester, const Size(400, 1000));
+    await tester.pumpWidget(_app((_) async => _posts));
+    await tester.pumpAndSettle();
+
+    // 고친 적이 없으면 바로 닫힌다
+    await _sendQuery(tester, '아무 문장');
+    await tester.tap(find.byTooltip('닫기'));
+    await tester.pumpAndSettle();
+    expect(find.text('AI가 이렇게 알아들었어요'), findsNothing);
+
+    await _sendQuery(tester, '아무 문장');
+    await tester.tap(find.byTooltip('조건 빼기').first);
+    await tester.pumpAndSettle();
+    expect(find.text('조건이 바뀌었어요 — 다시 찾기'), findsOneWidget); // C-5 배너
+
+    await tester.tap(find.byTooltip('닫기'));
+    await tester.pumpAndSettle();
+    expect(find.text('고친 조건을 버릴까요?'), findsOneWidget);
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
+    expect(find.text('AI가 이렇게 알아들었어요'), findsOneWidget); // 남아 있음
+
+    // 끌어 내리기도 확인을 거친다
+    // 시트 맨 위 끌기 손잡이(drag handle)를 잡고 아래로
+    final sheetTop = tester.getTopLeft(find.byType(AiSearchConfirmSheet)).dy;
+    await tester.dragFrom(Offset(200, sheetTop + 12), const Offset(0, 300));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('AI가 이렇게 알아들었어요'),
+      findsOneWidget,
+      reason: '끌어도 바로 닫히면 안 됨',
+    );
+    expect(find.text('고친 조건을 버릴까요?'), findsOneWidget);
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
+
+    // 바깥(어두운 배경) 누르기도 확인을 거친다
+    await tester.tapAt(const Offset(200, 20));
+    await tester.pumpAndSettle();
+    expect(find.text('고친 조건을 버릴까요?'), findsOneWidget);
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('다시 찾기').first); // 배너 사라짐
+    await tester.pumpAndSettle();
+    expect(find.text('조건이 바뀌었어요 — 다시 찾기'), findsNothing);
+
+    await tester.tap(find.byTooltip('닫기'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('버리기'));
+    await tester.pumpAndSettle();
+    expect(find.text('AI가 이렇게 알아들었어요'), findsNothing); // 닫힘
+  });
+
   testWidgets('B: 장터 글 5탭 · B-6 AI 상태 체크 · B-5 시세 · 후기 · B-7 취소/확인', (
     tester,
   ) async {
@@ -571,6 +729,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(LinearProgressIndicator), findsOneWidget); // B-5
     expect(find.text('480,000원'), findsOneWidget);
+    expect(find.text('시세 평균보다 2만 원 싸요'), findsOneWidget); // label 그대로
 
     await tester.tap(find.text('후기'));
     await tester.pumpAndSettle();

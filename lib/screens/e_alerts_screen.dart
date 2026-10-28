@@ -4,7 +4,7 @@
 // | 번호 | Flutter 위젯명 | 비즈니스 명칭(한글) | 정보 전달 기준 | 원칙 | 편의성 포인트 |
 // |---|---|---|---|---|---|
 // | E-1 | GradientHeader | 알림 머리 | 화면 이름 + 한 줄 설명 | P04 · 모든 메뉴 같은 자리 | 지금 어느 메뉴인지 바로 앎 |
-// | E-2 | Card · Switch · ListTile | 알림 조건 카드 | 조건 이름(새 글 수 주황) → 문장 → 조건 칩 → 새 글 목록 → AI 검색으로 보기 · 끄고 켠 뒤 "되돌리기" | P01 · P03 · P04 | 알림을 끄고 켜기를 한 자리에서 · 검색과 같은 조건으로 새 글을 바로 열기 |
+// | E-2 | Card · Switch · ListTile | 알림 조건 카드 | 조건 이름(새 글 수는 숫자만 주황 배지) → 문장 → 조건 칩 → 새 글 목록(카테고리 그림) → AI 검색으로 보기 · 끄고 켠 뒤 "되돌리기" | P01 · P03 · P04 · P08 · P02 | 알림을 끄고 켜기를 한 자리에서 · 검색과 같은 조건으로 새 글을 바로 열기 |
 // | E-3 | FutureBuilder · LoadingView · ErrorView · EmptyView · RefreshIndicator | 알림 상태 안내 | 로딩 → 오류 + 다시 시도 → 빈 목록 안내 · 아래로 당겨 새로고침 | P09 | 오류 때 앱을 껐다 켜지 않아도 됨 |
 // ────────────────────────────────────────────────────────────────────────────────────────
 // 전환: E → C 덮기(AI 검색으로 보기) · E → B 쌓기(새 글 줄).
@@ -186,7 +186,7 @@ class _AlertCard extends StatelessWidget {
                       ),
                       if (on && alert.newCount > 0) ...[
                         const SizedBox(width: 8),
-                        NewBadge(count: alert.newCount),
+                        NewBadge(count: alert.newCount), // E-2 P08 숫자만
                       ],
                     ],
                   ),
@@ -225,7 +225,11 @@ class _AlertCard extends StatelessWidget {
               for (final m in alert.matches)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: RoundedImage(m.image, width: 52, height: 52),
+                  leading: CategoryArt(
+                    m.category,
+                    width: 52,
+                    height: 52,
+                  ), // E-2 P02
                   title: Text(
                     m.title,
                     maxLines: 1,

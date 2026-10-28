@@ -3,12 +3,12 @@
 // ── 디자인 가이드 대응표: 화면 B — 게시글 상세 (docs/디자인가이드.md 3장과 같게) ─────────────
 // | 번호 | Flutter 위젯명 | 비즈니스 명칭(한글) | 정보 전달 기준 | 원칙 | 편의성 포인트 |
 // |---|---|---|---|---|---|
-// | B-1 | AppBar · BackButton | 뒤로가기 바 | 왼쪽 위에 항상 | P03 · #8 #9 | 처음부터 다시 들어오지 않아도 됨 |
-// | B-2 | Image · Text | 게시글 머리 | 사진 → 제목 → 가격(가장 크게) → 지역 | P08 | 스크롤 없이 핵심 확인 |
+// | B-1 | AppBar · BackButton | 뒤로가기 바 | 왼쪽 위에 항상 · 밝은 바탕에 진한 화살표 · 제목 | P03 · #8 #9 | 처음부터 다시 들어오지 않아도 됨 |
+// | B-2 | CategoryArt · Text | 게시글 머리 | 카테고리 그림 → 제목 → 가격(가장 크게) → 지역 | P08 · P02 | 스크롤 없이 핵심 확인 |
 // | B-3 | Chip | 내 조건과 맞는 이유 | 머리 바로 아래 · C에서 왔을 때만 | P01 | 왜 추천됐는지 다시 확인 |
 // | B-4 | TabBar · TabBarView | 판단 정보 탭 | 글 내용 · AI 상태 체크 · 시세 · 사양 · 후기 (장터 글만 5탭, 다른 게시판은 글 내용 한 탭) | P07 | 시세 · 상태 · 후기를 앱 밖에서 안 찾음 |
-// | B-5 | Row · LinearProgressIndicator | 시세 범위 막대 | 최저 · 평균 · 최고 + 이 매물 위치 | P07 | 비싼지 싼지 바로 판단 |
-// | B-6 | Stack · Image · ListTile | AI 상태 체크 | 사진 위 번호 → 항목별 상태(좋음 · 보통 · 확인 필요) | P01 · #7 | 사진만 보고 혼자 상태를 짐작하지 않음 |
+// | B-5 | Row · LinearProgressIndicator | 시세 범위 막대 | 최저 · 평균 · 최고 + 이 매물 위치 + 평균 세로 눈금 → 막대 아래 한 줄 판단(priceInfo.label, 굵게) | P07 | 비싼지 싼지 바로 판단 |
+// | B-6 | Stack · CategoryArt · ListTile | AI 상태 체크 | 사진 위 해당 위치(미리 쓴 x · y)에 번호 → 항목별 상태(좋음 · 보통 · 확인 필요) | P01 · #7 | 사진만 보고 혼자 상태를 짐작하지 않음 |
 // | B-7 | FilledButton → showDialog | 판매자 연락 버튼 | 화면 아래 고정 | P03 · 취소 가능 | 잘못 눌러도 취소 가능 |
 // | B-8 | FutureBuilder · LoadingView · ErrorView · EmptyView | 게시글 불러오기 상태 안내 | 누르자마자 상세로 넘어감 → 여는 중 → 오류 + 다시 시도 → 없는 글 안내 | P01 · P09 | 눌렀는데 반응 없는 순간이 없음 · 실패해도 그 자리에서 다시 시도 |
 // ────────────────────────────────────────────────────────────────────────────────────────
@@ -122,7 +122,7 @@ class _PostLoadingScreenState extends State<PostLoadingScreen> {
           ); // B-8 P09
         }
         return Scaffold(
-          appBar: gradientAppBar(title: const Text('게시글')),
+          appBar: stackAppBar(title: const Text('게시글')),
           body: body,
         );
       },
@@ -160,7 +160,11 @@ class PostDetailScreen extends StatelessWidget {
       if (_isMarket) ...[
         (
           label: 'AI 상태 체크',
-          view: _ConditionCheckTab(postId: post.id, load: loadConditionCheck),
+          view: _ConditionCheckTab(
+            postId: post.id,
+            category: post.category,
+            load: loadConditionCheck,
+          ),
         ),
         (label: '시세', view: _PriceTab(post: post, load: loadPriceInfo)),
         (label: '사양', view: _SpecTab(post: post)),
@@ -173,7 +177,9 @@ class PostDetailScreen extends StatelessWidget {
     return DefaultTabController(
       length: tabs.length,
       child: Scaffold(
-        appBar: gradientAppBar(title: Text(boardLabel(post.board))), // B-1 P03
+        appBar: stackAppBar(
+          title: Text(boardLabel(post.board)),
+        ), // B-1 P03 진한 화살표 · 제목
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: detailMaxWidth),
@@ -274,7 +280,7 @@ class _PostHeader extends StatelessWidget {
             children: [
               AspectRatio(
                 aspectRatio: 16 / 9,
-                child: RoundedImage(post.image, radius: 20),
+                child: CategoryArt(post.category, radius: 20), // B-2 P02
               ), // B-2 P08
               const SizedBox(height: 12),
               Card(
@@ -400,9 +406,16 @@ class _BodyTab extends StatelessWidget {
 
 /// B-4 'AI 상태 체크' 탭 — GET /conditionChecks?postId=
 class _ConditionCheckTab extends StatefulWidget {
-  const _ConditionCheckTab({required this.postId, required this.load});
+  const _ConditionCheckTab({
+    required this.postId,
+    required this.category,
+    required this.load,
+  });
 
   final int postId;
+
+  /// 자리표시 그림을 고를 카테고리
+  final String category;
   final ConditionCheckLoader load;
 
   @override
@@ -437,34 +450,48 @@ class _ConditionCheckTabState extends State<_ConditionCheckTab> {
         if (check == null || check.items.isEmpty) {
           return const EmptyView(message: '이 매물은 아직 AI 상태 체크 결과가 없습니다.');
         }
-        return ConditionCheckView(check: check);
+        return ConditionCheckView(check: check, category: widget.category);
       },
     );
   }
 }
 
-/// B-6 AI 상태 체크 — 사진 위 번호 → 항목별 상태(좋음 · 보통 · 확인 필요).
-/// 결과는 db.json conditionChecks에 미리 써 둔 것 — 이미지를 분석하지 않는다.
-/// 번호를 찍을 좌표 데이터가 없으므로 사진 왼쪽 위에 번호를 모아 올린다(위치를 지어내지 않음).
+/// B-6 AI 상태 체크 — 사진 위 해당 위치에 번호 → 항목별 상태(좋음 · 보통 · 확인 필요).
+/// 결과와 번호 위치(x · y, 0–1 비율)는 db.json conditionChecks에 미리 써 둔 것 — 이미지를 분석하지 않는다.
+/// 위치가 없는 항목만 사진 왼쪽 위에 모은다(위치를 지어내지 않음).
 class ConditionCheckView extends StatelessWidget {
-  const ConditionCheckView({super.key, required this.check});
+  const ConditionCheckView({
+    super.key,
+    required this.check,
+    this.category = '',
+  });
 
   final ConditionCheck check;
+
+  /// 자리표시 그림을 고를 카테고리
+  final String category;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     Color levelColor(String level) => switch (level) {
-      '좋음' => colors.primary,
+      '좋음' => const Color(0xFF2E9E6B), // 보라 그림 위에서도 보이게 초록
       '보통' => colors.tertiary,
       _ => colors.error, // 확인 필요
     };
     Widget badge(ConditionCheckItem item) => CircleAvatar(
       radius: 14,
-      backgroundColor: levelColor(item.level),
-      child: Text(
-        '${item.no}',
-        style: TextStyle(color: colors.onPrimary, fontWeight: FontWeight.bold),
+      backgroundColor: Colors.white,
+      child: CircleAvatar(
+        radius: 12,
+        backgroundColor: levelColor(item.level),
+        child: Text(
+          '${item.no}',
+          style: TextStyle(
+            color: colors.onPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
     return ListView(
@@ -474,19 +501,39 @@ class ConditionCheckView extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: AspectRatio(
             aspectRatio: 4 / 3,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                NetImage(check.image),
-                Positioned(
-                  left: 8,
-                  top: 8,
-                  child: Wrap(
-                    spacing: 6,
-                    children: [for (final item in check.items) badge(item)],
-                  ),
-                ),
-              ],
+            child: LayoutBuilder(
+              builder: (context, box) {
+                final placed = [
+                  for (final item in check.items)
+                    if (item.x != null && item.y != null) item,
+                ];
+                final loose = [
+                  for (final item in check.items)
+                    if (item.x == null || item.y == null) item,
+                ];
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CategoryArt(category, radius: 0),
+                    // 미리 쓴 비율 위치에 번호를 올린다 (번호 원 반지름 14만큼 가운데 맞춤)
+                    for (final item in placed)
+                      Positioned(
+                        left: item.x! * box.maxWidth - 14,
+                        top: item.y! * box.maxHeight - 14,
+                        child: badge(item),
+                      ),
+                    if (loose.isNotEmpty)
+                      Positioned(
+                        left: 8,
+                        top: 8,
+                        child: Wrap(
+                          spacing: 6,
+                          children: [for (final item in loose) badge(item)],
+                        ),
+                      ),
+                  ],
+                );
+              },
             ),
           ),
         ), // B-6 P01 사진 위 번호
@@ -568,7 +615,7 @@ class _PriceTabState extends State<_PriceTab> {
   }
 }
 
-/// B-5 시세 범위 막대 — 최저 · 평균 · 최고 + 이 매물 위치.
+/// B-5 시세 범위 막대 — 최저 · 평균 · 최고 + 이 매물 위치 + 평균 눈금 + 한 줄 판단(priceInfo.label).
 /// 시세 값은 미리 정한 데이터 그대로이고, 막대 위 위치(비율)만 그리기 위해 정한다.
 class PriceRangeBar extends StatelessWidget {
   const PriceRangeBar({super.key, required this.info, required this.price});
@@ -583,6 +630,10 @@ class PriceRangeBar extends StatelessWidget {
     final position = span <= 0
         ? 0.5
         : ((price - info.low) / span).clamp(0.0, 1.0);
+    // 평균 눈금을 그릴 자리 — 막대 위 위치(비율)만 정한다. 싼지 비싼지는 label 문장 그대로 쓴다
+    final avgAt = span <= 0
+        ? 0.5
+        : ((info.avg - info.low) / span).clamp(0.0, 1.0);
     Widget label(String name, int value, CrossAxisAlignment align) => Expanded(
       child: Column(
         crossAxisAlignment: align,
@@ -600,13 +651,32 @@ class PriceRangeBar extends StatelessWidget {
       children: [
         Text('이 매물 ${formatWon(price)}', style: text.titleMedium),
         const SizedBox(height: 12),
-        LinearProgressIndicator(
-          value: position,
-          minHeight: 12,
-          color: muleOrange,
-          backgroundColor: mulePurple.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(6),
-          semanticsLabel: '시세 범위 안 이 매물 위치',
+        SizedBox(
+          height: 22,
+          child: LayoutBuilder(
+            builder: (context, box) => Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                LinearProgressIndicator(
+                  value: position,
+                  minHeight: 12,
+                  color: muleOrange,
+                  backgroundColor: mulePurple.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
+                  semanticsLabel: '시세 범위 안 이 매물 위치',
+                ),
+                Positioned(
+                  left: avgAt * box.maxWidth - 1,
+                  top: 0,
+                  bottom: 0,
+                  child: Semantics(
+                    label: '평균 위치',
+                    child: Container(width: 2, color: muleInk),
+                  ),
+                ), // B-5 P07 평균 눈금
+              ],
+            ),
+          ),
         ), // B-5 P07
         const SizedBox(height: 8),
         Row(
@@ -617,6 +687,13 @@ class PriceRangeBar extends StatelessWidget {
             label('최고', info.high, CrossAxisAlignment.end),
           ],
         ), // B-5 P07
+        if (info.label.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            info.label,
+            style: text.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          ), // B-5 P07 미리 쓴 한 줄 판단
+        ],
       ],
     );
   }

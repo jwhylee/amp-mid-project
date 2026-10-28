@@ -4,21 +4,23 @@
 // | 번호 | Flutter 위젯명 | 비즈니스 명칭(한글) | 정보 전달 기준 | 원칙 | 편의성 포인트 |
 // |---|---|---|---|---|---|
 // | C-1 | Text | 내가 말한 문장 | 시트 맨 위 · 작게 · 회색 | P01 | 무엇을 물었는지 기억 안 해도 됨 |
-// | C-2 | Wrap · InputChip | AI가 알아들은 조건 | 예: [일렉기타] [펜더] [60만 원 이하] [앰프 빼기 X] · 빼는 단어는 빨간 테두리 · 시트에서 가장 크게 · 뺀 뒤 "되돌리기" | P05 · P03 · #1 #2 | 결과를 보기 전에 오해를 고침 · 잘못 빼도 되돌림 |
+// | C-2 | Wrap · InputChip | AI가 알아들은 조건 | 예: [일렉기타] [펜더] [60만 원 이하] [앰프 빼기 X] · 연보라 채움 + 진한 글자(홈 예시 칩과 구분) · 빼는 단어는 빨간 테두리 · 시트에서 가장 크게 · 뺀 뒤 "되돌리기" · 칩 줄 아래 "추천 결과 n개 · 게시판 이름" | P05 · P03 · P01 · P07 · P04 · #1 #2 | 결과를 보기 전에 오해를 고침 · 잘못 빼도 되돌림 · 결과가 몇 개 어디서 왔는지 미리 앎 |
 // | C-3 | TextButton → showDialog | 빼는 단어 추가 | 조건 줄 끝 "+ 빼는 단어" · 비어 있으면 "추가" 꺼짐 | P05 · #2 요청 | "esp"→"lespaul" 같은 엉뚱한 결과를 미리 막음 |
-// | C-4 | Card · Text | AI 조언 (예산 맞춤) | 조건 아래 · 2–3문장 · 예산 대비 핵심만 굵게 · "미리 써 둔 예시 답변 · 참고용" 표시 | P10 · #7 | 시세 · 상태를 혼자 따져 보지 않아도 됨 |
-// | C-5 | ListView · ListTile | 추천 결과 목록 | 게시판 라벨 → 제목 → 가격 → 추천 이유 줄 | P06 · P01 | 왜 나왔는지 상세에 안 들어가도 앎 |
+// | C-4 | Card · Text · InkWell | AI 조언 (예산 맞춤) | 목적 요약 → 1순위와 이유 → 비교표 → 확인할 것 → 예산 바꾸면 → 근거 (접힘: 목적 요약 · 1순위 한 줄 · "자세히 보기" / 1순위 없는 응답은 목적 · 예산 · 근거만) | P10 · P06 · P05 · P01 · #7 | 시세 · 상태를 혼자 따져 보지 않아도 됨 |
+// | C-5 | ListView · ListTile | 추천 결과 목록 | 게시판 라벨 → 제목 → 가격 → 추천 이유 줄 · 조건을 고치면 위에 "조건이 바뀌었어요 — 다시 찾기" 배너 | P06 · P01 | 왜 나왔는지 상세에 안 들어가도 앎 · 결과가 옛 조건 기준임을 앎 |
 // | C-6 | FutureBuilder · LoadingView · ErrorView · EmptyView | AI 응답 상태 안내 | 찾는 중 → 오류 + 다시 시도 → 결과 없음(조건 하나 빼기 제안) | P09 | 결과 0건에서 막히지 않음 |
 // | C-7 | FilledButton · OutlinedButton | 다시 찾기 · 알림 받기 | 시트 맨 아래 한 줄 | P03 · P04 | 처음부터 다시 말하지 않아도 됨 · 검색과 알림 조건을 두 번 설정 안 함 |
+// | C-8 | IconButton → showDialog | 닫기 확인 | 시트 오른쪽 위 닫기 · 조건을 고친 적이 있으면 닫기 · 바깥 누르기 · 끌어 내리기 때 "고친 조건을 버릴까요?"(취소 / 버리기) · 저장 없음 | P03 · P05 | 실수로 닫아 고친 조건을 잃지 않음 |
 // ────────────────────────────────────────────────────────────────────────────────────────
 // 전환: A · E → C 덮기(showModalBottomSheet, A-2 보내기 · 알림 조건의 AI 검색) · C → B 쌓기(Navigator.push, C-5 추천 결과) — B에서 뒤로 가면 시트로.
 // 적응형: 넓은 화면에서 시트 최대 너비 720dp로 가운데 정렬.
-// 상태관리 포인트(가이드 5장): S1 입력 문장 · S3 서버 응답 상태 · S4 AI가 알아들은 조건 목록 · S5 AI 조언 펼침 / 접힘 → `grep -rn "STATE:" lib`
+// 상태관리 포인트(가이드 5장): S1 입력 문장 · S3 서버 응답 상태 · S4 AI가 알아들은 조건 목록(고친 적 있음 → C-8 닫기 확인 · C-5 배너) · S5 AI 조언 펼침 / 접힘 → `grep -rn "STATE:" lib`
 //
 // ⚠ 실제 문장 해석·추천 계산 없음 (안내 5장: "실제 비즈니스 로직"은 감점).
-//   어떤 문장이든 미리 쓴 응답(id=1, 예시 조건 칩 2번만 id=2)을 그대로 보여 준다.
+//   어떤 문장이든 미리 쓴 응답(id=1, 예시 조건 칩 2번 id=2 · 3번 id=3, 알림 조건은 각자의 responseId)을 그대로 보여 준다.
 //   조건을 빼거나 빼는 단어를 더해도 화면 표시만 바뀌고, 다시 찾기는 같은 응답을 다시 GET한다.
-//   AI 조언(C-4)도 db.json aiResponses.advice에 미리 쓴 문장 그대로다. 알림 받기(C-7)는 SnackBar만 띄운다.
+//   AI 조언(C-4) 컨설팅도 db.json aiResponses.consulting에 미리 쓴 문자열 그대로다 — 계산 · 비교 · 정렬하지 않는다.
+//   알림 받기(C-7)는 SnackBar만 띄운다. 닫기 확인(C-8)은 고친 조건을 저장하지 않고 버릴지만 묻는다.
 import 'package:flutter/material.dart';
 
 import '../api.dart';
@@ -64,7 +66,8 @@ class AiSearchConfirmSheet extends StatefulWidget {
   }) {
     return showModalBottomSheet<void>(
       context: context,
-      showDragHandle: true,
+      // 기본 끌기 손잡이는 끌어 내리면 PopScope를 거치지 않고 닫힌다 → 시트 안 손잡이(_DragToClose)가 대신 maybePop
+      enableDrag: false,
       isScrollControlled: true,
       useSafeArea: true,
       constraints: const BoxConstraints(maxWidth: sheetMaxWidth),
@@ -95,6 +98,15 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
   /// C-4 AI 조언 펼침 여부
   var _adviceExpanded = false;
 
+  /// C-8 조건을 한 번이라도 고쳤는지 — 닫을 때 확인 창을 띄운다 (저장하지 않는다)
+  var _edited = false;
+
+  /// C-5 위 배너 — 조건을 고친 뒤 아직 다시 찾지 않았으면 true
+  var _stale = false;
+
+  /// 손잡이를 끄는 동안 시트가 따라 내려가는 거리 (놓으면 0)
+  var _drag = 0.0;
+
   Future<AiResponse?> _load() async {
     final response = await widget.loaders.aiResponse(widget.responseId);
     _conditions ??= [...?response?.conditions];
@@ -103,10 +115,44 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
 
   /// C-6 다시 시도 · C-7 다시 찾기 — 같은 응답을 다시 GET (계산하지 않는다)
   void _retry() {
-    // STATE: S3 서버 응답 상태 → C-6
+    // STATE: S3 서버 응답 상태 → C-6 · S4 배너 닫힘 → C-5
     setState(() {
       _future = _load();
+      _stale = false;
     });
+  }
+
+  /// 조건을 고쳤다는 표시 — C-8 닫기 확인 · C-5 배너
+  void _markEdited() {
+    _edited = true;
+    _stale = true;
+  }
+
+  /// C-8 닫기 확인 — 고친 조건이 있으면 버릴지 묻는다 (취소 / 버리기)
+  Future<void> _confirmClose() async {
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('고친 조건을 버릴까요?'),
+        content: const Text('시트를 닫으면 빼거나 더한 조건이 사라져요. 저장되지 않습니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('버리기'),
+          ),
+        ],
+      ),
+    ); // C-8 P03 · P05
+    if (discard != true || !mounted) return;
+    // STATE: S4 AI가 알아들은 조건 목록 → 버림 (시트를 닫는다)
+    setState(() {
+      _edited = false;
+    });
+    Navigator.of(context).pop();
   }
 
   /// C-2 조건 빼기 — 잘못 눌러도 SnackBar의 "되돌리기"로 같은 자리에 돌려놓는다
@@ -114,9 +160,10 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
     final list = _conditions;
     if (list == null) return;
     final index = list.indexOf(condition);
-    // STATE: S4 AI가 알아들은 조건 목록 → C-2
+    // STATE: S4 AI가 알아들은 조건 목록 → C-2 · C-5 배너 · C-8
     setState(() {
       list.remove(condition);
+      _markEdited();
     });
     _showSnack(
       '"${condition.type == 'exclude' ? '${condition.label} 빼기' : condition.label}" 조건을 뺐어요',
@@ -138,12 +185,13 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
       builder: (_) => const _ExcludedWordDialog(),
     ); // C-3 P05
     if (!mounted || word == null || word.trim().isEmpty) return;
-    // STATE: S4 AI가 알아들은 조건 목록 → C-2 (저장하지 않는다)
+    // STATE: S4 AI가 알아들은 조건 목록 → C-2 · C-5 배너 · C-8 (저장하지 않는다)
     setState(() {
       _conditions = [
         ...?_conditions,
         AiCondition(type: 'exclude', label: word.trim()),
       ];
+      _markEdited();
     });
   }
 
@@ -179,59 +227,98 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final colors = Theme.of(context).colorScheme;
-    return ScaffoldMessenger(
-      key: _messenger,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: FutureBuilder<AiResponse?>(
-          future: _future,
-          builder: (context, snap) => ListView(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            children: [
-              // STATE: S1 입력 문장 → A-2 · C-1
-              Row(
+    // C-8 닫기 확인 — 닫기 버튼 · 바깥 누르기 · 끌어 내리기 모두 여기를 지난다
+    return PopScope(
+      canPop: !_edited,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _confirmClose();
+      },
+      child: Transform.translate(
+        offset: Offset(0, _drag),
+        child: ScaffoldMessenger(
+          key: _messenger,
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            // 끌어 내리기 — 충분히 내리면 maybePop → 고친 조건이 있으면 C-8 확인 창
+            appBar: PreferredSize(
+              preferredSize: const Size.fromHeight(28),
+              child: _DragToClose(
+                onDrag: (dy) => setState(() {
+                  _drag = (_drag + dy).clamp(0.0, 400.0);
+                }),
+                onRelease: (fling) {
+                  final close = fling || _drag > 80;
+                  setState(() {
+                    _drag = 0;
+                  });
+                  if (close) Navigator.of(context).maybePop();
+                },
+              ), // C-8 P03 · P05 끌어 내리기도 확인을 거침
+            ),
+            body: FutureBuilder<AiResponse?>(
+              future: _future,
+              builder: (context, snap) => ListView(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 children: [
-                  const Icon(Icons.auto_awesome, size: 18, color: mulePurple),
-                  const SizedBox(width: 6),
-                  Text(
-                    'AI가 이렇게 알아들었어요',
-                    style: text.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  // STATE: S1 입력 문장 → A-2 · C-1
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.auto_awesome,
+                        size: 18,
+                        color: mulePurple,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'AI가 이렇게 알아들었어요',
+                          style: text.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).maybePop(),
+                        icon: const Icon(Icons.close),
+                        tooltip: '닫기',
+                      ), // C-8 P03 · P05
+                    ],
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '“${widget.query}”',
+                    style: text.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ), // C-1 P01
+                  const SizedBox(height: 12),
+                  ..._body(snap, text, colors),
                 ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                '“${widget.query}”',
-                style: text.bodySmall?.copyWith(color: colors.onSurfaceVariant),
-              ), // C-1 P01
-              const SizedBox(height: 12),
-              ..._body(snap, text, colors),
-            ],
-          ),
-        ),
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: _retry,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('다시 찾기'),
-                  ), // C-7 P03
+            ),
+            bottomNavigationBar: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: _retry,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('다시 찾기'),
+                      ), // C-7 P03
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _subscribe,
+                        icon: const Icon(Icons.notifications_none),
+                        label: const Text('이 조건으로 알림'),
+                      ), // C-7 P04
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _subscribe,
-                    icon: const Icon(Icons.notifications_none),
-                    label: const Text('이 조건으로 알림'),
-                  ), // C-7 P04
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -268,7 +355,10 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
         (a, b) => _conditionOrder(a.type).compareTo(_conditionOrder(b.type)),
       );
     final advice = snap.data?.advice ?? '';
+    final consulting = snap.data?.consulting;
     final results = snap.data?.results ?? const <AiResult>[];
+    // 응답에 들어 있는 결과를 세고 게시판 이름을 나온 순서대로 적을 뿐 — 거르거나 계산하지 않는다
+    final boards = {for (final r in results) r.board}.join(' · ');
     return [
       Wrap(
         spacing: 8,
@@ -279,25 +369,44 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
             InputChip(
               label: Text(
                 c.type == 'exclude' ? '${c.label} 빼기' : c.label,
-                style: text.titleMedium,
+                style: text.titleMedium?.copyWith(
+                  color: muleInk,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               avatar: c.type == 'exclude'
                   ? Icon(Icons.block, size: 18, color: colors.error)
                   : null,
+              // 연보라 채움 — 홈의 흰 예시 칩(A-3)과 역할을 구분한다
+              backgroundColor: mulePurple.withValues(alpha: 0.12),
               side: c.type == 'exclude'
                   ? BorderSide(color: colors.error, width: 1.5)
-                  : null,
+                  : BorderSide.none,
+              deleteIconColor: muleInk,
               deleteButtonTooltipMessage: '조건 빼기',
               onDeleted: () => _removeCondition(c),
-            ), // C-2 P05
+            ), // C-2 P05 · P04 연보라 채움
           TextButton(
             onPressed: _addExcludedWord,
             child: const Text('+ 빼는 단어'),
           ), // C-3 P05
         ],
       ),
-      const SizedBox(height: 12),
-      if (advice.isNotEmpty)
+      Padding(
+        padding: const EdgeInsets.only(top: 10, bottom: 12),
+        child: Text(
+          results.isEmpty ? '추천 결과 없음' : '추천 결과 ${results.length}개 · $boards',
+          style: text.bodyMedium?.copyWith(color: muleSubtle),
+        ), // C-2 P01 · P07 결과 수와 게시판을 미리 알림
+      ),
+      if (consulting != null)
+        _ConsultingCard(
+          consulting: consulting,
+          expanded: _adviceExpanded,
+          onToggle: _toggleAdvice,
+          onOpenPost: (postId) => openPostById(context, widget.loaders, postId),
+        )
+      else if (advice.isNotEmpty)
         _AdviceCard(
           advice: advice,
           expanded: _adviceExpanded,
@@ -310,6 +419,26 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
           style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
       ),
+      if (_stale)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Card(
+            color: muleOrange.withValues(alpha: 0.1),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(color: muleOrange.withValues(alpha: 0.4)),
+            ),
+            child: ListTile(
+              leading: const Icon(Icons.info_outline, color: muleOrange),
+              title: const Text('조건이 바뀌었어요 — 다시 찾기'),
+              subtitle: const Text('아래 결과는 바꾸기 전 조건으로 찾은 것이에요'),
+              trailing: TextButton(
+                onPressed: _retry,
+                child: const Text('다시 찾기'),
+              ),
+            ),
+          ),
+        ), // C-5 P01 결과가 옛 조건 기준임을 알림
       if (results.isEmpty)
         const EmptyView(message: '조건에 맞는 글이 없습니다.\n조건을 하나 빼 보세요.') // C-6 P09
       else
@@ -360,7 +489,254 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
   }
 }
 
-/// C-4 AI 조언 (예산 맞춤) — 첫 문장(핵심)만 굵게, 접혀 있으면 2줄까지
+/// 시트 맨 위 끌기 손잡이 — 아래로 끌면 시트가 따라 내려가고, 놓을 때 충분히 내렸거나 빠르게 튕겼으면 닫기를 요청한다
+class _DragToClose extends StatelessWidget {
+  const _DragToClose({required this.onDrag, required this.onRelease});
+
+  final ValueChanged<double> onDrag;
+
+  /// true: 빠르게 아래로 튕김
+  final ValueChanged<bool> onRelease;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: '끌어 내려 닫기',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onVerticalDragUpdate: (d) => onDrag(d.delta.dy),
+        onVerticalDragEnd: (d) => onRelease((d.primaryVelocity ?? 0) > 700),
+        child: Center(
+          child: Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: muleSubtle.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// C-4 AI 조언 (예산 맞춤) — 컨설팅 6칸. 모든 문장 · 값은 db.json에 미리 쓴 그대로 (계산 · 비교 · 정렬 없음)
+/// 접힘: ① 내 목적 요약 · ② 1순위 한 줄 · "자세히 보기"
+/// 펼침: ② 1순위 이유 → ③ 비교표 → ④ 사기 전 확인할 것 → ⑤ 예산을 바꾸면 → ⑥ 근거 · 한계
+/// 1순위가 없는 응답(결과 없음)은 ②③④를 숨기고 ①⑤⑥만.
+class _ConsultingCard extends StatelessWidget {
+  const _ConsultingCard({
+    required this.consulting,
+    required this.expanded,
+    required this.onToggle,
+    required this.onOpenPost,
+  });
+
+  final AiConsulting consulting;
+  final bool expanded;
+  final VoidCallback onToggle;
+  final ValueChanged<int> onOpenPost;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final pick = consulting.pick;
+    Widget section(String title) => Padding(
+      padding: const EdgeInsets.only(top: 14, bottom: 6),
+      child: Text(
+        title,
+        style: text.labelLarge?.copyWith(
+          color: mulePurple,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+    Widget line(IconData icon, Color color, String value) => Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 8),
+          Expanded(child: Text(value, style: text.bodyMedium)),
+        ],
+      ),
+    );
+    return Card(
+      color: mulePurple.withValues(alpha: 0.07),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 12, 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.tips_and_updates_outlined,
+                  size: 18,
+                  color: mulePurple,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'AI 조언',
+                  style: text.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // ① 내 목적 요약 — 작은 칩 한 줄
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final g in consulting.goal)
+                    Container(
+                      margin: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: muleLine),
+                      ),
+                      child: Text(g, style: text.labelMedium),
+                    ),
+                ],
+              ),
+            ), // C-4 P10 내 목적 요약
+            // ② 1순위 한 줄
+            if (pick != null) ...[
+              const SizedBox(height: 10),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    const TextSpan(
+                      text: '1순위 · ',
+                      style: TextStyle(
+                        color: muleOrange,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(
+                      text: pick.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    TextSpan(text: ' — ${pick.headline}'),
+                  ],
+                ),
+                style: text.bodyMedium,
+              ),
+            ],
+            if (expanded) ...[
+              if (pick != null) ...[
+                section('1순위 추천 이유'),
+                for (final r in pick.reasons)
+                  line(Icons.check_circle, mulePurple, r), // C-4 P10
+                if (consulting.compare.isNotEmpty) ...[
+                  section('비교'),
+                  for (final row in consulting.compare)
+                    _CompareRow(row: row, onTap: () => onOpenPost(row.postId)),
+                ],
+                if (consulting.checklist.isNotEmpty) ...[
+                  section('사기 전 확인할 것'),
+                  for (final c in consulting.checklist)
+                    line(Icons.help_outline, muleOrange, c), // C-4 P05
+                ],
+              ],
+              if (consulting.budgetTips.isNotEmpty) ...[
+                section('예산을 바꾸면'),
+                for (final t in consulting.budgetTips)
+                  line(Icons.swap_vert, mulePurple, t), // C-4 P10
+              ],
+              section('근거 · 한계'),
+              if (consulting.basis.isNotEmpty)
+                Text(consulting.basis, style: text.bodySmall),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '미리 써 둔 예시 답변이에요 · 참고용',
+                    style: text.labelSmall?.copyWith(color: muleSubtle),
+                  ), // C-4 P01 근거 · 한계를 알림
+                ),
+                TextButton(
+                  onPressed: onToggle,
+                  child: Text(expanded ? '접기' : '자세히 보기'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// C-4 ③ 비교표 한 줄 — 제목 · 가격(굵게) · 시세 · 상태 · 메모. 누르면 B 게시글 상세로 쌓기
+class _CompareRow extends StatelessWidget {
+  const _CompareRow({required this.row, required this.onTap});
+
+  final ConsultingRow row;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final grey = text.bodySmall?.copyWith(color: muleSubtle);
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            row.title,
+                            style: text.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          formatWon(row.price),
+                          style: text.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text('시세 ${row.market} · 상태 ${row.condition}', style: grey),
+                    if (row.note.isNotEmpty) Text(row.note, style: grey),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: muleSubtle),
+            ],
+          ),
+        ),
+      ),
+    ); // C-4 P06 비교표 — 보고 고르기
+  }
+}
+
+/// C-4 AI 조언 — 컨설팅이 없는 응답일 때만: 첫 문장(핵심)만 굵게, 접혀 있으면 2줄까지
 class _AdviceCard extends StatelessWidget {
   const _AdviceCard({
     required this.advice,

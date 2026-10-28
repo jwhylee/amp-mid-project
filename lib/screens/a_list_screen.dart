@@ -3,11 +3,11 @@
 // ── 디자인 가이드 대응표: 화면 A — 통합 홈 (docs/디자인가이드.md 3장과 같게) ────────────
 // | 번호 | Flutter 위젯명 | 비즈니스 명칭(한글) | 정보 전달 기준(무엇을 · 순서 · 강조) | 원칙(P번호 · 이유) | 편의성 포인트 |
 // |---|---|---|---|---|---|
-// | A-1 | GradientHeader · HeaderIconButton | 상단 인사 바 | 앱 이름 → 인사 한 줄 · 오른쪽 알림 아이콘(새 글 있으면 주황 점) | P04 · 모든 메뉴 같은 자리 | 새 글이 있는지 첫눈에 앎 |
+// | A-1 | GradientHeader · HeaderIconButton | 상단 인사 바 | 앱 이름 → 음악 활동 전체를 아우르는 인사 한 줄("악기 · 합주실 · 레슨 · 구인까지, 오늘은 무엇을 찾나요?") · 오른쪽 알림 아이콘(새 글 있으면 주황 점) | P04 · P02 · 모든 메뉴 같은 자리 · 커뮤니티 전체를 부름 | 새 글이 있는지 첫눈에 앎 |
 // | A-2 | TextField + IconButton | AI 조건 입력창 | 헤더 안 흰 입력창 · 예시 문장 힌트 · 쓴 글이 있으면 지우기(X) · 비어 있으면 보내기 꺼짐 | P06 · P05 · P03 · 키워드 대신 문장 · 빈 문장 막기 · 한 번에 지우기 | 키워드를 정확히 기억 안 해도 됨 |
 // | A-3 | SingleChildScrollView(가로) · PillButton | 예시 조건 칩 | 입력창 아래 안내 한 줄 "AI에게 이렇게 물어보세요" → 가로 한 줄 · 3개 | P06 · 보고 고르기 | 첫 문장을 직접 안 써도 됨 · 알림 조건이 첫 화면에 들어옴 |
-// | A-8 | PillButton · ListView(가로) · Card | 내 알림 조건 | 첫 화면 가운데 · 조건 알약(새 글 수 주황) → 그 조건의 새 글 카드 · "AI 검색으로 보기"(E-2와 같은 이름) | P01 · P04 · P07 | 게시판을 돌지 않아도 걸어 둔 조건의 새 글을 바로 봄 |
 // | A-9 | Row · InkWell | 게시판 바로가기 | 장터 · 합주실 · 레슨 · 구인 · 공연 아이콘 5개 | P02 · P07 | 누르면 게시판 메뉴의 그 게시판으로 |
+// | A-8 | PillButton · ListView(가로) · Card | 내 알림 조건 | 게시판 바로가기 아래 · 조건 알약(새 글 수는 숫자만 주황 배지) → 그 조건의 새 글 낮은 가로 카드(카테고리 그림 → 제목 → 게시판 · 가격) · "AI 검색으로 보기"(E-2와 같은 이름) | P01 · P04 · P07 · P08 · P02 | 게시판을 돌지 않아도 걸어 둔 조건의 새 글을 바로 봄 |
 // | A-5 | Card · ExpansionTile | 공지 접기 줄 | 기본 1줄로 접힘 · 누르면 펼침 | P08 · 공지 7줄 제거 | 새 글까지 스크롤 안 해도 됨 |
 // | A-10 | FutureBuilder · LoadingView · ErrorView · EmptyView · RefreshIndicator | 알림 조건 상태 안내 | 로딩 → 오류 + 다시 시도 → 빈 목록 안내(알림 거는 법) · 아래로 당겨 새로고침 | P09 · 복구 방법 제시 | 오류 때 앱을 껐다 켜지 않아도 됨 |
 // ────────────────────────────────────────────────────────────────────────────────────────
@@ -28,11 +28,11 @@ import 'c_result_sheet.dart';
 /// 홈 본문 최대 너비 — 넓은 창에서 줄이 너무 길어지지 않게
 const homeMaxWidth = 720.0;
 
-/// A-3 예시 조건 칩 — 누르면 입력창이 채워진다. responseId = C에서 보여 줄 미리 쓴 응답 (2번 칩만 빈 결과 id=2)
+/// A-3 예시 조건 칩 — 누르면 입력창이 채워진다. responseId = C에서 보여 줄 미리 쓴 응답 (2번 칩 빈 결과 id=2 · 3번 칩 베이스 레슨 id=3)
 const exampleConditions = [
   (text: '60만 원 이하 펜더 일렉, 앰프 빼고', responseId: 1),
   (text: '강남 주말 드럼 합주실 1만 원 이하', responseId: 2),
-  (text: '베이스 레슨 초보', responseId: 1),
+  (text: '베이스 레슨 초보', responseId: 3),
 ];
 
 /// A-9 게시판 바로가기 아이콘 (boardTabs 순서)
@@ -154,7 +154,8 @@ class _HomeScreenState extends State<HomeScreen> {
               future: _alerts,
               builder: (context, snap) => GradientHeader(
                 title: 'MuBase',
-                subtitle: '안녕하세요! 오늘은 어떤 악기를 찾나요?',
+                subtitle:
+                    '악기 · 합주실 · 레슨 · 구인까지, 오늘은 무엇을 찾나요?', // A-1 P02 음악 활동 전체
                 actions: [
                   HeaderIconButton(
                     icon: Icons.notifications_none,
@@ -234,7 +235,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                 ],
-              ), // A-3 P06 가로 한 줄 — 알림 조건이 첫 화면에 들어오게
+              ), // A-3 P06 가로 한 줄
+            ),
+          ),
+          _section(const SectionTitle('게시판 바로가기')),
+          _section(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  for (final (i, b) in boardTabs.indexed)
+                    Expanded(
+                      child: _BoardShortcut(
+                        icon: boardIcons[i],
+                        label: b.label,
+                        onTap: () => widget.onOpenBoard?.call(i),
+                      ),
+                    ),
+                ],
+              ), // A-9 P02 · P07
             ),
           ),
           _section(
@@ -278,24 +297,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   onSearch: _searchAlert,
                 ); // A-8 P01 · P07
               },
-            ),
-          ),
-          _section(const SectionTitle('게시판 바로가기')),
-          _section(
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: [
-                  for (final (i, b) in boardTabs.indexed)
-                    Expanded(
-                      child: _BoardShortcut(
-                        icon: boardIcons[i],
-                        label: b.label,
-                        onTap: () => widget.onOpenBoard?.call(i),
-                      ),
-                    ),
-                ],
-              ), // A-9 P02 · P07
             ),
           ),
           _section(const SectionTitle('공지')),
@@ -365,7 +366,7 @@ class _AlertShelf extends StatelessWidget {
                         Positioned(
                           right: -6,
                           top: -8,
-                          child: NewBadge(count: a.newCount),
+                          child: NewBadge(count: a.newCount), // A-8 P08 숫자만
                         ),
                     ],
                   ),
@@ -411,7 +412,7 @@ class _AlertShelf extends StatelessWidget {
               else
                 SizedBox(
                   // 사진 100 + 글자 줄 — 글자 크기 설정이 커져도 카드가 넘치지 않게
-                  height: scaledHeight(context, 130, 84),
+                  height: scaledHeight(context, 24, 62),
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.only(right: 8),
@@ -431,7 +432,7 @@ class _AlertShelf extends StatelessWidget {
   }
 }
 
-/// A-8 새 글 카드 한 장 — 사진 → 게시판 → 제목 → 가격(굵게)
+/// A-8 새 글 카드 한 장 — 낮은 가로 카드: 카테고리 그림 → 제목 → 게시판 · 가격 (홈에서 알림이 다시 크게 강조되지 않게)
 class _MatchCard extends StatelessWidget {
   const _MatchCard({required this.match, required this.onTap});
 
@@ -442,33 +443,40 @@ class _MatchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return SizedBox(
-      width: 176,
+      width: 236,
       child: Card(
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                RoundedImage(match.image, width: 160, height: 100),
-                const SizedBox(height: 8),
-                Text(
-                  match.board,
-                  style: text.labelSmall?.copyWith(color: mulePurple),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  match.title,
-                  style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const Spacer(),
-                Text(
-                  formatWon(match.price),
-                  style: text.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                CategoryArt(match.category, width: 56, height: 56), // A-8 P02
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        match.title,
+                        style: text.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        '${match.board} · ${formatWon(match.price)}',
+                        style: text.bodySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
