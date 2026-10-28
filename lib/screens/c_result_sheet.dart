@@ -5,13 +5,13 @@
 // |---|---|---|---|---|---|
 // | C-1 | Text | 내가 말한 문장 | 시트 맨 위 · 작게 · 회색 | P01 | 무엇을 물었는지 기억 안 해도 됨 |
 // | C-2 | Wrap + InputChip | AI가 알아들은 조건 영역 | 예: [일렉기타] [펜더] [60만 원 이하] [앰프 빼기 X] · 연보라 채움 + 진한 글자(홈 예시 칩과 구분) · 추가 키워드는 보라 테두리 · 제거 키워드는 빨간 테두리 · 시트에서 가장 크게 · 뺀 뒤 "되돌리기"(알림은 4초 뒤 · 시트를 닫으면 사라짐) · 칩 줄 아래 "추천 결과 n개 · 게시판 이름" | P05 · P03 · P01 · P07 · P04 · #1 #2 | 결과를 보기 전에 오해를 고침 · 잘못 빼도 되돌림 · 결과가 몇 개 어디서 왔는지 미리 앎 |
-// | C-3 | TextButton + showDialog | 키워드 제거 버튼 | 조건 줄 끝 "− 키워드 제거" · 비어 있으면 "추가" 꺼짐 | P05 · #2 요청 | "esp"→"lespaul" 같은 엉뚱한 결과를 미리 막음 |
+// | C-3 | TextButton + showDialog | 키워드 제거 버튼 | 조건 칩 줄 아래 "− 키워드 제거"(키워드 추가 버튼 오른쪽에 나란히) · 비어 있으면 "추가" 꺼짐 | P05 · #2 요청 | "esp"→"lespaul" 같은 엉뚱한 결과를 미리 막음 |
 // | C-4 | Card + Text + InkWell | AI 조언 카드 | 목적 요약 → 1순위와 이유 → 비교표 → 확인할 것 → 예산 바꾸면 → 근거 (접힘: 목적 요약 · 1순위 한 줄 · "자세히 보기" · "미리 써 둔 예시 답변이에요 · 참고용" / 펼침 마지막 줄은 근거 + " · 참고용" 한 줄 / 1순위 없는 응답은 목적 · 예산 · 근거만) | P10 · P06 · P05 · P01 · P08 · #7 | 시세 · 상태를 혼자 따져 보지 않아도 됨 |
 // | C-5 | ListView + ListTile | 추천 결과 목록 | 게시판 라벨 → 제목 → 가격 → 추천 이유 줄 · 조건을 고치면 위에 "조건이 바뀌었어요 — 다시 찾기" 배너 | P06 · P01 | 왜 나왔는지 상세에 안 들어가도 앎 · 결과가 옛 조건 기준임을 앎 |
 // | C-6 | FutureBuilder + LoadingView + ErrorView + EmptyView | AI 응답 상태 안내 | 찾는 중 → 오류 + 다시 시도 → 결과 없음(조건 하나 빼기 제안) | P09 | 결과 0건에서 막히지 않음 |
 // | C-7 | FilledButton + OutlinedButton | 다시 찾기 · 알림 받기 | 시트 맨 아래 한 줄 | P03 · P04 | 처음부터 다시 말하지 않아도 됨 · 검색과 알림 조건을 두 번 설정 안 함 |
 // | C-8 | IconButton + showDialog | 닫기 확인 창 | 시트 오른쪽 위 닫기 · 조건을 고친 적이 있으면 닫기 · 바깥 누르기 · 끌어 내리기 때 "고친 조건을 버릴까요?"(취소 / 버리기) · 저장 없음 | P03 · P05 | 실수로 닫아 고친 조건을 잃지 않음 |
-// | C-9 | TextButton + showDialog | 키워드 추가 버튼 | 조건 줄 끝 "+ 키워드 추가" (키워드 제거 버튼 앞) · 확인하면 [○○ 포함] 칩(보라 테두리) · 비어 있으면 "추가" 꺼짐 | P07 · P05 | 꼭 들어가야 할 단어("하드케이스" 등)를 처음부터 다시 말하지 않고 덧붙임 |
+// | C-9 | TextButton + showDialog | 키워드 추가 버튼 | 조건 칩 줄 아래 "+ 키워드 추가"(키워드 제거 버튼과 나란히, 왼쪽) · 확인하면 [○○ 포함] 칩(보라 테두리) · 비어 있으면 "추가" 꺼짐 | P07 · P05 | 꼭 들어가야 할 단어("하드케이스" 등)를 처음부터 다시 말하지 않고 덧붙임 |
 // ────────────────────────────────────────────────────────────────────────────────────────
 // 전환: A · E → C 덮기(showModalBottomSheet, A-2 보내기 · 알림 조건의 AI 검색) · C → B 쌓기(Navigator.push, C-5 추천 결과) — B에서 뒤로 가면 시트로.
 // 적응형: 넓은 화면에서 시트 최대 너비 720dp로 가운데 정렬.
@@ -428,15 +428,24 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
               deleteButtonTooltipMessage: '조건 빼기',
               onDeleted: () => _removeCondition(c),
             ), // C-2 P05 · P04 연보라 채움
-          TextButton(
-            onPressed: () => _addWord(type: 'include'),
-            child: const Text('+ 키워드 추가'),
-          ), // C-9 P07 · P05
-          TextButton(
-            onPressed: () => _addWord(type: 'exclude'),
-            child: const Text('− 키워드 제거'),
-          ), // C-3 P05
         ],
+      ),
+      // 조건 칩 바로 아래 한 줄 — 키워드 추가 · 제거를 나란히
+      Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Row(
+          children: [
+            TextButton(
+              onPressed: () => _addWord(type: 'include'),
+              child: const Text('+ 키워드 추가'),
+            ), // C-9 P07 · P05
+            const SizedBox(width: 4),
+            TextButton(
+              onPressed: () => _addWord(type: 'exclude'),
+              child: const Text('− 키워드 제거'),
+            ), // C-3 P05
+          ],
+        ),
       ),
       Padding(
         padding: const EdgeInsets.only(top: 10, bottom: 12),
