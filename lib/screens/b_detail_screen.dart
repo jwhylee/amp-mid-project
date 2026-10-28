@@ -254,7 +254,7 @@ class PostDetailScreen extends StatelessWidget {
 }
 
 /// B-2 게시글 머리 — 사진 → 제목 → 가격(가장 크게) → 지역
-/// 그라데이션 띠 위에 사진을 올리고, 그 아래 흰 카드에 판단 정보를 모은다.
+/// 사진은 밝은 바탕 위에 그대로 두고(뒤에 색 띠를 깔지 않는다 — 사진 테두리와 겹쳐 보이지 않게), 그 아래 흰 카드에 판단 정보를 모은다.
 class _PostHeader extends StatelessWidget {
   const _PostHeader({required this.post});
 
@@ -264,86 +264,71 @@ class _PostHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final grey = text.bodyMedium?.copyWith(color: muleSubtle);
-    return Stack(
-      children: [
-        Container(
-          height: 120,
-          decoration: const BoxDecoration(
-            gradient: muleGradient,
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: PostImage(
-                  post.image,
-                  category: post.category,
-                  radius: 20,
-                ), // B-2 P02
-              ), // B-2 P08
-              const SizedBox(height: 12),
-              // 사진 · 탭 줄과 같은 폭으로 꽉 채운다 (좌우 여백 16 동일)
-              SizedBox(
-                width: double.infinity,
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: PostImage(
+              post.image,
+              category: post.category,
+              radius: 20,
+            ), // B-2 P02
+          ), // B-2 P08
+          const SizedBox(height: 12),
+          // 사진 · 탭 줄과 같은 폭으로 꽉 채운다 (좌우 여백 16 동일)
+          SizedBox(
+            width: double.infinity,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      post.category,
+                      style: text.labelMedium?.copyWith(color: mulePurple),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      post.title,
+                      style: text.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      formatWon(post.price),
+                      style: text.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ), // B-2 P08 가격 가장 크게
+                    const SizedBox(height: 6),
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Text(
-                          post.category,
-                          style: text.labelMedium?.copyWith(color: mulePurple),
+                        const Icon(
+                          Icons.place_outlined,
+                          size: 16,
+                          color: muleSubtle,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          post.title,
-                          style: text.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          formatWon(post.price),
-                          style: text.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ), // B-2 P08 가격 가장 크게
-                        const SizedBox(height: 6),
-                        Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.place_outlined,
-                              size: 16,
-                              color: muleSubtle,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(post.region, style: grey),
-                            const SizedBox(width: 12),
-                            const Icon(
-                              Icons.schedule,
-                              size: 16,
-                              color: muleSubtle,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(formatDate(post.createdAt), style: grey),
-                          ],
-                        ),
+                        const SizedBox(width: 4),
+                        Text(post.region, style: grey),
+                        const SizedBox(width: 12),
+                        const Icon(Icons.schedule, size: 16, color: muleSubtle),
+                        const SizedBox(width: 4),
+                        Text(formatDate(post.createdAt), style: grey),
                       ],
                     ),
-                  ),
+                  ],
                 ),
-              ), // B-2 P04 · P08 사진과 같은 폭
-            ],
-          ),
-        ),
-      ],
+              ),
+            ),
+          ), // B-2 P04 · P08 사진과 같은 폭
+        ],
+      ),
     );
   }
 }
