@@ -429,35 +429,51 @@ void main() {
     expect(find.text('다시 찾기'), findsOneWidget); // 시트로 돌아옴
   });
 
-  testWidgets('C-2 조건 빼기 · C-3 빼는 단어 추가 · C-4 AI 조언 · C-7 알림 SnackBar', (
-    tester,
-  ) async {
-    _setSize(tester, const Size(400, 800));
-    await tester.pumpWidget(_app((_) async => _posts));
-    await tester.pumpAndSettle();
-    await _sendQuery(tester, '아무 문장');
+  testWidgets(
+    'C-2 조건 빼기 · C-3 키워드 제거 · C-9 키워드 추가 · C-4 AI 조언 · C-7 알림 SnackBar',
+    (tester) async {
+      _setSize(tester, const Size(400, 800));
+      await tester.pumpWidget(_app((_) async => _posts));
+      await tester.pumpAndSettle();
+      await _sendQuery(tester, '아무 문장');
 
-    await tester.tap(find.byTooltip('조건 빼기').first);
-    await tester.pumpAndSettle();
-    expect(find.widgetWithText(InputChip, '일렉기타'), findsNothing);
+      await tester.tap(find.byTooltip('조건 빼기').first);
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(InputChip, '일렉기타'), findsNothing);
 
-    await tester.tap(find.text('+ 빼는 단어'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).last, 'lespaul');
-    await tester.pump(); // 글자가 들어가야 "추가"가 켜진다
-    await tester.tap(find.text('추가'));
-    await tester.pumpAndSettle();
-    expect(find.widgetWithText(InputChip, 'lespaul 빼기'), findsOneWidget);
+      await tester.tap(find.text('− 키워드 제거'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, 'lespaul');
+      await tester.pump(); // 글자가 들어가야 "추가"가 켜진다
+      await tester.tap(find.text('추가'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(InputChip, 'lespaul 빼기'), findsOneWidget);
 
-    expect(find.text('AI 조언'), findsOneWidget); // C-4
-    await tester.tap(find.text('더 보기'));
-    await tester.pumpAndSettle();
-    expect(find.text('접기'), findsOneWidget); // S5 펼침
+      await tester.tap(find.text('+ 키워드 추가')); // C-9
+      await tester.pumpAndSettle();
+      expect(find.text('키워드 추가'), findsOneWidget);
+      expect(
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, '추가'))
+            .onPressed,
+        isNull,
+      ); // 비어 있으면 "추가" 꺼짐
+      await tester.enterText(find.byType(TextField).last, '하드케이스');
+      await tester.pump();
+      await tester.tap(find.text('추가'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(InputChip, '하드케이스 포함'), findsOneWidget);
 
-    await tester.tap(find.text('이 조건으로 알림'));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('이 조건으로 새 글 알림을 받아요'), findsOneWidget); // C-7
-  });
+      expect(find.text('AI 조언'), findsOneWidget); // C-4
+      await tester.tap(find.text('더 보기'));
+      await tester.pumpAndSettle();
+      expect(find.text('접기'), findsOneWidget); // S5 펼침
+
+      await tester.tap(find.text('이 조건으로 알림'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('이 조건으로 새 글 알림을 받아요'), findsOneWidget); // C-7
+    },
+  );
 
   testWidgets('C-6: 예시 칩 2번 → 빈 결과 · 오류 → 다시 찾기', (tester) async {
     _setSize(tester, const Size(800, 900)); // 예시 칩 3개가 한 줄에 다 보이게

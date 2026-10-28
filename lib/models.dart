@@ -218,7 +218,7 @@ class SearchAlert {
   }
 }
 
-/// AI가 이해한 조건 하나 — type: category · brand · price · region · exclude
+/// AI가 이해한 조건 하나 — type: category · brand · price · region · include · exclude
 class AiCondition {
   const AiCondition({required this.type, required this.label});
 
@@ -286,12 +286,12 @@ class AiResponse {
   final int id;
   final String query;
 
-  /// C-4 AI 조언 (예산 맞춤) — 미리 쓴 2–3문장
+  /// C-4 AI 조언 카드 — 미리 쓴 2–3문장
   final String advice;
   final List<AiCondition> conditions;
   final List<AiResult> results;
 
-  /// C-4 AI 조언 컨설팅 — 없으면 null (그때는 advice 문장만)
+  /// C-4 AI 조언 카드 컨설팅 — 없으면 null (그때는 advice 문장만)
   final AiConsulting? consulting;
 
   static AiResponse? fromJson(Object? json) {
@@ -378,7 +378,7 @@ class ConsultingRow {
   }
 }
 
-/// C-4 AI 조언 컨설팅 — aiResponses[*].consulting 그대로 (목적 → 1순위 → 비교 → 확인할 것 → 예산 바꾸면 → 근거)
+/// C-4 AI 조언 카드 컨설팅 — aiResponses[*].consulting 그대로 (목적 → 1순위 → 비교 → 확인할 것 → 예산 바꾸면 → 근거)
 class AiConsulting {
   const AiConsulting({
     this.goal = const [],

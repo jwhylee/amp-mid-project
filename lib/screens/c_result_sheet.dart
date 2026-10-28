@@ -4,23 +4,24 @@
 // | 번호 | Flutter 위젯명 | 비즈니스 명칭(한글) | 정보 전달 기준 | 원칙 | 편의성 포인트 |
 // |---|---|---|---|---|---|
 // | C-1 | Text | 내가 말한 문장 | 시트 맨 위 · 작게 · 회색 | P01 | 무엇을 물었는지 기억 안 해도 됨 |
-// | C-2 | Wrap · InputChip | AI가 알아들은 조건 | 예: [일렉기타] [펜더] [60만 원 이하] [앰프 빼기 X] · 연보라 채움 + 진한 글자(홈 예시 칩과 구분) · 빼는 단어는 빨간 테두리 · 시트에서 가장 크게 · 뺀 뒤 "되돌리기"(알림은 4초 뒤 · 시트를 닫으면 사라짐) · 칩 줄 아래 "추천 결과 n개 · 게시판 이름" | P05 · P03 · P01 · P07 · P04 · #1 #2 | 결과를 보기 전에 오해를 고침 · 잘못 빼도 되돌림 · 결과가 몇 개 어디서 왔는지 미리 앎 |
-// | C-3 | TextButton → showDialog | 빼는 단어 추가 | 조건 줄 끝 "+ 빼는 단어" · 비어 있으면 "추가" 꺼짐 | P05 · #2 요청 | "esp"→"lespaul" 같은 엉뚱한 결과를 미리 막음 |
-// | C-4 | Card · Text · InkWell | AI 조언 (예산 맞춤) | 목적 요약 → 1순위와 이유 → 비교표 → 확인할 것 → 예산 바꾸면 → 근거 (접힘: 목적 요약 · 1순위 한 줄 · "자세히 보기" · "미리 써 둔 예시 답변이에요 · 참고용" / 펼침 마지막 줄은 근거 + " · 참고용" 한 줄 / 1순위 없는 응답은 목적 · 예산 · 근거만) | P10 · P06 · P05 · P01 · P08 · #7 | 시세 · 상태를 혼자 따져 보지 않아도 됨 |
-// | C-5 | ListView · ListTile | 추천 결과 목록 | 게시판 라벨 → 제목 → 가격 → 추천 이유 줄 · 조건을 고치면 위에 "조건이 바뀌었어요 — 다시 찾기" 배너 | P06 · P01 | 왜 나왔는지 상세에 안 들어가도 앎 · 결과가 옛 조건 기준임을 앎 |
-// | C-6 | FutureBuilder · LoadingView · ErrorView · EmptyView | AI 응답 상태 안내 | 찾는 중 → 오류 + 다시 시도 → 결과 없음(조건 하나 빼기 제안) | P09 | 결과 0건에서 막히지 않음 |
-// | C-7 | FilledButton · OutlinedButton | 다시 찾기 · 알림 받기 | 시트 맨 아래 한 줄 | P03 · P04 | 처음부터 다시 말하지 않아도 됨 · 검색과 알림 조건을 두 번 설정 안 함 |
-// | C-8 | IconButton → showDialog | 닫기 확인 | 시트 오른쪽 위 닫기 · 조건을 고친 적이 있으면 닫기 · 바깥 누르기 · 끌어 내리기 때 "고친 조건을 버릴까요?"(취소 / 버리기) · 저장 없음 | P03 · P05 | 실수로 닫아 고친 조건을 잃지 않음 |
+// | C-2 | Wrap + InputChip | AI가 알아들은 조건 영역 | 예: [일렉기타] [펜더] [60만 원 이하] [앰프 빼기 X] · 연보라 채움 + 진한 글자(홈 예시 칩과 구분) · 추가 키워드는 보라 테두리 · 제거 키워드는 빨간 테두리 · 시트에서 가장 크게 · 뺀 뒤 "되돌리기"(알림은 4초 뒤 · 시트를 닫으면 사라짐) · 칩 줄 아래 "추천 결과 n개 · 게시판 이름" | P05 · P03 · P01 · P07 · P04 · #1 #2 | 결과를 보기 전에 오해를 고침 · 잘못 빼도 되돌림 · 결과가 몇 개 어디서 왔는지 미리 앎 |
+// | C-3 | TextButton + showDialog | 키워드 제거 버튼 | 조건 줄 끝 "− 키워드 제거" · 비어 있으면 "추가" 꺼짐 | P05 · #2 요청 | "esp"→"lespaul" 같은 엉뚱한 결과를 미리 막음 |
+// | C-4 | Card + Text + InkWell | AI 조언 카드 | 목적 요약 → 1순위와 이유 → 비교표 → 확인할 것 → 예산 바꾸면 → 근거 (접힘: 목적 요약 · 1순위 한 줄 · "자세히 보기" · "미리 써 둔 예시 답변이에요 · 참고용" / 펼침 마지막 줄은 근거 + " · 참고용" 한 줄 / 1순위 없는 응답은 목적 · 예산 · 근거만) | P10 · P06 · P05 · P01 · P08 · #7 | 시세 · 상태를 혼자 따져 보지 않아도 됨 |
+// | C-5 | ListView + ListTile | 추천 결과 목록 | 게시판 라벨 → 제목 → 가격 → 추천 이유 줄 · 조건을 고치면 위에 "조건이 바뀌었어요 — 다시 찾기" 배너 | P06 · P01 | 왜 나왔는지 상세에 안 들어가도 앎 · 결과가 옛 조건 기준임을 앎 |
+// | C-6 | FutureBuilder + LoadingView + ErrorView + EmptyView | AI 응답 상태 안내 | 찾는 중 → 오류 + 다시 시도 → 결과 없음(조건 하나 빼기 제안) | P09 | 결과 0건에서 막히지 않음 |
+// | C-7 | FilledButton + OutlinedButton | 다시 찾기 · 알림 받기 | 시트 맨 아래 한 줄 | P03 · P04 | 처음부터 다시 말하지 않아도 됨 · 검색과 알림 조건을 두 번 설정 안 함 |
+// | C-8 | IconButton + showDialog | 닫기 확인 창 | 시트 오른쪽 위 닫기 · 조건을 고친 적이 있으면 닫기 · 바깥 누르기 · 끌어 내리기 때 "고친 조건을 버릴까요?"(취소 / 버리기) · 저장 없음 | P03 · P05 | 실수로 닫아 고친 조건을 잃지 않음 |
+// | C-9 | TextButton + showDialog | 키워드 추가 버튼 | 조건 줄 끝 "+ 키워드 추가" (키워드 제거 버튼 앞) · 확인하면 [○○ 포함] 칩(보라 테두리) · 비어 있으면 "추가" 꺼짐 | P07 · P05 | 꼭 들어가야 할 단어("하드케이스" 등)를 처음부터 다시 말하지 않고 덧붙임 |
 // ────────────────────────────────────────────────────────────────────────────────────────
 // 전환: A · E → C 덮기(showModalBottomSheet, A-2 보내기 · 알림 조건의 AI 검색) · C → B 쌓기(Navigator.push, C-5 추천 결과) — B에서 뒤로 가면 시트로.
 // 적응형: 넓은 화면에서 시트 최대 너비 720dp로 가운데 정렬.
-// 상태관리 포인트(가이드 5장): S1 입력 문장 · S3 서버 응답 상태 · S4 AI가 알아들은 조건 목록(고친 적 있음 → C-8 닫기 확인 · C-5 배너) · S5 AI 조언 펼침 / 접힘 → `grep -rn "STATE:" lib`
+// 상태관리 포인트(가이드 5장): S1 입력 문장 · S3 서버 응답 상태 · S4 AI가 알아들은 조건 목록(고친 적 있음 → C-8 닫기 확인 창 · C-5 배너) · S5 AI 조언 펼침 / 접힘 → `grep -rn "STATE:" lib`
 //
 // ⚠ 실제 문장 해석·추천 계산 없음 (안내 5장: "실제 비즈니스 로직"은 감점).
 //   어떤 문장이든 미리 쓴 응답(id=1, 예시 조건 칩 2번 id=2 · 3번 id=3, 알림 조건은 각자의 responseId)을 그대로 보여 준다.
-//   조건을 빼거나 빼는 단어를 더해도 화면 표시만 바뀌고, 다시 찾기는 같은 응답을 다시 GET한다.
-//   AI 조언(C-4) 컨설팅도 db.json aiResponses.consulting에 미리 쓴 문자열 그대로다 — 계산 · 비교 · 정렬하지 않는다.
-//   알림 받기(C-7)는 SnackBar만 띄운다. 닫기 확인(C-8)은 고친 조건을 저장하지 않고 버릴지만 묻는다.
+//   조건을 빼거나 추가 키워드 · 제거 키워드를 넣어도 화면 표시만 바뀌고, 다시 찾기는 같은 응답을 다시 GET한다.
+//   AI 조언 카드(C-4) 컨설팅도 db.json aiResponses.consulting에 미리 쓴 문자열 그대로다 — 계산 · 비교 · 정렬하지 않는다.
+//   알림 받기(C-7)는 SnackBar만 띄운다. 닫기 확인 창(C-8)은 고친 조건을 저장하지 않고 버릴지만 묻는다.
 import 'package:flutter/material.dart';
 
 import '../api.dart';
@@ -32,8 +33,22 @@ import 'b_detail_screen.dart';
 /// 넓은 화면에서 시트 최대 너비 (가이드 1장 적응형)
 const sheetMaxWidth = 720.0;
 
-/// C-2 AI가 알아들은 조건의 표시 순서 (가이드 4장) — 모르는 type은 맨 뒤
-const _conditionTypes = ['category', 'brand', 'price', 'region', 'exclude'];
+/// C-2 AI가 알아들은 조건 영역의 표시 순서 (가이드 4장) — 모르는 type은 맨 뒤
+const _conditionTypes = [
+  'category',
+  'brand',
+  'price',
+  'region',
+  'include',
+  'exclude',
+];
+
+/// C-2 칩 글자 — 추가 키워드는 "○○ 포함", 제거 키워드는 "○○ 빼기"
+String _conditionLabel(AiCondition c) => switch (c.type) {
+  'include' => '${c.label} 포함',
+  'exclude' => '${c.label} 빼기',
+  _ => c.label,
+};
 
 int _conditionOrder(String type) {
   final i = _conditionTypes.indexOf(type);
@@ -92,10 +107,10 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
 
   late Future<AiResponse?> _future = _load();
 
-  /// C-2 AI가 알아들은 조건 — 첫 응답에서 한 번만 채우고, 이후로는 화면에서 고친 그대로 둔다
+  /// C-2 AI가 알아들은 조건 영역 — 첫 응답에서 한 번만 채우고, 이후로는 화면에서 고친 그대로 둔다
   List<AiCondition>? _conditions;
 
-  /// C-4 AI 조언 펼침 여부
+  /// C-4 AI 조언 카드 펼침 여부
   var _adviceExpanded = false;
 
   /// C-8 조건을 한 번이라도 고쳤는지 — 닫을 때 확인 창을 띄운다 (저장하지 않는다)
@@ -122,13 +137,13 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
     });
   }
 
-  /// 조건을 고쳤다는 표시 — C-8 닫기 확인 · C-5 배너
+  /// 조건을 고쳤다는 표시 — C-8 닫기 확인 창 · C-5 배너
   void _markEdited() {
     _edited = true;
     _stale = true;
   }
 
-  /// C-8 닫기 확인 — 고친 조건이 있으면 버릴지 묻는다 (취소 / 버리기)
+  /// C-8 닫기 확인 창 — 고친 조건이 있으면 버릴지 묻는다 (취소 / 버리기)
   Future<void> _confirmClose() async {
     final discard = await showDialog<bool>(
       context: context,
@@ -166,7 +181,7 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
       _markEdited();
     });
     _showSnack(
-      '"${condition.type == 'exclude' ? '${condition.label} 빼기' : condition.label}" 조건을 뺐어요',
+      '"${_conditionLabel(condition)}" 조건을 뺐어요',
       action: SnackBarAction(
         label: '되돌리기',
         onPressed: () {
@@ -179,17 +194,22 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
     );
   }
 
-  Future<void> _addExcludedWord() async {
+  /// C-3 키워드 제거 · C-9 키워드 추가 — 입력한 단어를 조건 칩으로 붙이기만 한다 (거르거나 저장하지 않는다)
+  Future<void> _addWord({required String type}) async {
+    final include = type == 'include';
     final word = await showDialog<String>(
       context: context,
-      builder: (_) => const _ExcludedWordDialog(),
-    ); // C-3 P05
+      builder: (_) => _ConditionWordDialog(
+        title: include ? '키워드 추가' : '키워드 제거',
+        hint: include ? '예: 하드케이스, 픽업 교체' : '예: 앰프, lespaul',
+      ),
+    ); // C-3 P05 · C-9 P05
     if (!mounted || word == null || word.trim().isEmpty) return;
     // STATE: S4 AI가 알아들은 조건 목록 → C-2 · C-5 배너 · C-8 (저장하지 않는다)
     setState(() {
       _conditions = [
         ...?_conditions,
-        AiCondition(type: 'exclude', label: word.trim()),
+        AiCondition(type: type, label: word.trim()),
       ];
       _markEdited();
     });
@@ -235,7 +255,7 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final colors = Theme.of(context).colorScheme;
-    // C-8 닫기 확인 — 닫기 버튼 · 바깥 누르기 · 끌어 내리기 모두 여기를 지난다
+    // C-8 닫기 확인 창 — 닫기 버튼 · 바깥 누르기 · 끌어 내리기 모두 여기를 지난다
     return PopScope(
       canPop: !_edited,
       onPopInvokedWithResult: (didPop, _) {
@@ -363,7 +383,7 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
         ), // C-6 P09
       ];
     }
-    // 가이드 순서(카테고리 → 브랜드 → 가격 → 지역 → 빼는 단어)로 보여 주기만 한다 — 표시 순서 정렬, 계산 아님
+    // 가이드 순서(카테고리 → 브랜드 → 가격 → 지역 → 추가 키워드 → 제거 키워드)로 보여 주기만 한다 — 표시 순서 정렬, 계산 아님
     final conditions = [...?_conditions]
       ..sort(
         (a, b) => _conditionOrder(a.type).compareTo(_conditionOrder(b.type)),
@@ -382,27 +402,39 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
           for (final c in conditions)
             InputChip(
               label: Text(
-                c.type == 'exclude' ? '${c.label} 빼기' : c.label,
+                _conditionLabel(c),
                 style: text.titleMedium?.copyWith(
                   color: muleInk,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              avatar: c.type == 'exclude'
-                  ? Icon(Icons.block, size: 18, color: colors.error)
-                  : null,
+              avatar: switch (c.type) {
+                'include' => const Icon(
+                  Icons.add_circle_outline,
+                  size: 18,
+                  color: mulePurple,
+                ),
+                'exclude' => Icon(Icons.block, size: 18, color: colors.error),
+                _ => null,
+              },
               // 연보라 채움 — 홈의 흰 예시 칩(A-3)과 역할을 구분한다
               backgroundColor: mulePurple.withValues(alpha: 0.12),
-              side: c.type == 'exclude'
-                  ? BorderSide(color: colors.error, width: 1.5)
-                  : BorderSide.none,
+              side: switch (c.type) {
+                'include' => const BorderSide(color: mulePurple, width: 1.5),
+                'exclude' => BorderSide(color: colors.error, width: 1.5),
+                _ => BorderSide.none,
+              },
               deleteIconColor: muleInk,
               deleteButtonTooltipMessage: '조건 빼기',
               onDeleted: () => _removeCondition(c),
             ), // C-2 P05 · P04 연보라 채움
           TextButton(
-            onPressed: _addExcludedWord,
-            child: const Text('+ 빼는 단어'),
+            onPressed: () => _addWord(type: 'include'),
+            child: const Text('+ 키워드 추가'),
+          ), // C-9 P07 · P05
+          TextButton(
+            onPressed: () => _addWord(type: 'exclude'),
+            child: const Text('− 키워드 제거'),
           ), // C-3 P05
         ],
       ),
@@ -535,7 +567,7 @@ class _DragToClose extends StatelessWidget {
   }
 }
 
-/// C-4 AI 조언 (예산 맞춤) — 컨설팅 6칸. 모든 문장 · 값은 db.json에 미리 쓴 그대로 (계산 · 비교 · 정렬 없음)
+/// C-4 AI 조언 카드 — 컨설팅 6칸. 모든 문장 · 값은 db.json에 미리 쓴 그대로 (계산 · 비교 · 정렬 없음)
 /// 접힘: ① 내 목적 요약 · ② 1순위 한 줄 · "자세히 보기"
 /// 펼침: ② 1순위 이유 → ③ 비교표 → ④ 사기 전 확인할 것 → ⑤ 예산을 바꾸면 → ⑥ 근거 · 한계
 /// 1순위가 없는 응답(결과 없음)은 ②③④를 숨기고 ①⑤⑥만.
@@ -757,7 +789,7 @@ class _CompareRow extends StatelessWidget {
   }
 }
 
-/// C-4 AI 조언 — 컨설팅이 없는 응답일 때만: 첫 문장(핵심)만 굵게, 접혀 있으면 2줄까지
+/// C-4 AI 조언 카드 — 컨설팅이 없는 응답일 때만: 첫 문장(핵심)만 굵게, 접혀 있으면 2줄까지
 class _AdviceCard extends StatelessWidget {
   const _AdviceCard({
     required this.advice,
@@ -831,15 +863,18 @@ class _AdviceCard extends StatelessWidget {
   }
 }
 
-/// C-3 빼는 단어 추가 — 확인하면 단어를 돌려주고, 저장하지 않는다
-class _ExcludedWordDialog extends StatefulWidget {
-  const _ExcludedWordDialog();
+/// C-3 키워드 제거 버튼 · C-9 키워드 추가 버튼 — 확인하면 단어를 돌려주고, 저장하지 않는다
+class _ConditionWordDialog extends StatefulWidget {
+  const _ConditionWordDialog({required this.title, required this.hint});
+
+  final String title;
+  final String hint;
 
   @override
-  State<_ExcludedWordDialog> createState() => _ExcludedWordDialogState();
+  State<_ConditionWordDialog> createState() => _ConditionWordDialogState();
 }
 
-class _ExcludedWordDialogState extends State<_ExcludedWordDialog> {
+class _ConditionWordDialogState extends State<_ConditionWordDialog> {
   final _word = TextEditingController();
 
   @override
@@ -851,11 +886,11 @@ class _ExcludedWordDialogState extends State<_ExcludedWordDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('빼는 단어 추가'),
+      title: Text(widget.title),
       content: TextField(
         controller: _word,
         autofocus: true,
-        decoration: const InputDecoration(hintText: '예: 앰프, lespaul'),
+        decoration: InputDecoration(hintText: widget.hint),
         onSubmitted: (value) {
           if (value.trim().isNotEmpty) Navigator.of(context).pop(value);
         },
@@ -874,7 +909,7 @@ class _ExcludedWordDialogState extends State<_ExcludedWordDialog> {
                 : () => Navigator.of(context).pop(_word.text),
             child: const Text('추가'),
           ),
-        ), // C-3 P05
+        ), // C-3 P05 · C-9 P05
       ],
     );
   }
