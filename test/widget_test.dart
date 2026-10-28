@@ -430,7 +430,7 @@ void main() {
   });
 
   testWidgets(
-    'C-2 조건 빼기 · C-3 키워드 제거 · C-9 키워드 추가 · C-4 AI 조언 · C-7 알림 SnackBar',
+    'C-2 조건 빼기 · C-3 제외 단어 · C-9 포함 단어 · C-4 AI 조언 · C-7 알림 SnackBar',
     (tester) async {
       _setSize(tester, const Size(400, 800));
       await tester.pumpWidget(_app((_) async => _posts));
@@ -441,17 +441,17 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.widgetWithText(InputChip, '일렉기타'), findsNothing);
 
-      await tester.tap(find.text('− 키워드 제거'));
+      await tester.tap(find.text('제외 단어'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).last, 'lespaul');
       await tester.pump(); // 글자가 들어가야 "추가"가 켜진다
       await tester.tap(find.text('추가'));
       await tester.pumpAndSettle();
-      expect(find.widgetWithText(InputChip, 'lespaul 빼기'), findsOneWidget);
+      expect(find.widgetWithText(InputChip, 'lespaul 제외'), findsOneWidget);
 
-      await tester.tap(find.text('+ 키워드 추가')); // C-9
+      await tester.tap(find.text('포함 단어')); // C-9
       await tester.pumpAndSettle();
-      expect(find.text('키워드 추가'), findsOneWidget);
+      expect(find.text('포함 단어 추가'), findsOneWidget);
       expect(
         tester
             .widget<FilledButton>(find.widgetWithText(FilledButton, '추가'))
