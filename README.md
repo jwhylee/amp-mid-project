@@ -262,3 +262,7 @@ flutter test      # 18개 통과: 3상태(게시판 · 알림 조건 · 게시�
 ```
 
 `pubspec.yaml` 의존성: `flutter`, `cupertino_icons`, `http`뿐. 플랫폼 설정: Android 디버그 빌드 평문 HTTP 허용(`android/app/src/debug/AndroidManifest.xml`), macOS 나가는 네트워크 허용(`macos/Runner/*.entitlements`).
+
+## 11. 사진 출처
+
+목업 게시글 사진(`mock_server/db.json`의 `image`)은 [Unsplash](https://unsplash.com)의 악기 · 합주 사진을 주소로만 불러옵니다(Unsplash License — 무료 사용). 사진을 불러오지 못하면 카테고리 자리표시 그림이 대신 나옵니다.

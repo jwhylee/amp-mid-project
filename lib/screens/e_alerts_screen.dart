@@ -72,6 +72,9 @@ class _AlertsScreenState extends State<AlertsScreen> {
             label: '되돌리기',
             onPressed: () => _toggle(alert, !on, undo: true),
           ), // E-2 P03 되돌리기
+          // action이 있어도 4초 뒤 사라지게 (C-2와 같은 규칙)
+          persist: false,
+          duration: const Duration(seconds: 4),
         ),
       );
   }

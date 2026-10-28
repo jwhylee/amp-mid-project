@@ -4,9 +4,9 @@
 // | 번호 | Flutter 위젯명 | 비즈니스 명칭(한글) | 정보 전달 기준 | 원칙 | 편의성 포인트 |
 // |---|---|---|---|---|---|
 // | C-1 | Text | 내가 말한 문장 | 시트 맨 위 · 작게 · 회색 | P01 | 무엇을 물었는지 기억 안 해도 됨 |
-// | C-2 | Wrap · InputChip | AI가 알아들은 조건 | 예: [일렉기타] [펜더] [60만 원 이하] [앰프 빼기 X] · 연보라 채움 + 진한 글자(홈 예시 칩과 구분) · 빼는 단어는 빨간 테두리 · 시트에서 가장 크게 · 뺀 뒤 "되돌리기" · 칩 줄 아래 "추천 결과 n개 · 게시판 이름" | P05 · P03 · P01 · P07 · P04 · #1 #2 | 결과를 보기 전에 오해를 고침 · 잘못 빼도 되돌림 · 결과가 몇 개 어디서 왔는지 미리 앎 |
+// | C-2 | Wrap · InputChip | AI가 알아들은 조건 | 예: [일렉기타] [펜더] [60만 원 이하] [앰프 빼기 X] · 연보라 채움 + 진한 글자(홈 예시 칩과 구분) · 빼는 단어는 빨간 테두리 · 시트에서 가장 크게 · 뺀 뒤 "되돌리기"(알림은 4초 뒤 · 시트를 닫으면 사라짐) · 칩 줄 아래 "추천 결과 n개 · 게시판 이름" | P05 · P03 · P01 · P07 · P04 · #1 #2 | 결과를 보기 전에 오해를 고침 · 잘못 빼도 되돌림 · 결과가 몇 개 어디서 왔는지 미리 앎 |
 // | C-3 | TextButton → showDialog | 빼는 단어 추가 | 조건 줄 끝 "+ 빼는 단어" · 비어 있으면 "추가" 꺼짐 | P05 · #2 요청 | "esp"→"lespaul" 같은 엉뚱한 결과를 미리 막음 |
-// | C-4 | Card · Text · InkWell | AI 조언 (예산 맞춤) | 목적 요약 → 1순위와 이유 → 비교표 → 확인할 것 → 예산 바꾸면 → 근거 (접힘: 목적 요약 · 1순위 한 줄 · "자세히 보기" / 1순위 없는 응답은 목적 · 예산 · 근거만) | P10 · P06 · P05 · P01 · #7 | 시세 · 상태를 혼자 따져 보지 않아도 됨 |
+// | C-4 | Card · Text · InkWell | AI 조언 (예산 맞춤) | 목적 요약 → 1순위와 이유 → 비교표 → 확인할 것 → 예산 바꾸면 → 근거 (접힘: 목적 요약 · 1순위 한 줄 · "자세히 보기" · "미리 써 둔 예시 답변이에요 · 참고용" / 펼침 마지막 줄은 근거 + " · 참고용" 한 줄 / 1순위 없는 응답은 목적 · 예산 · 근거만) | P10 · P06 · P05 · P01 · P08 · #7 | 시세 · 상태를 혼자 따져 보지 않아도 됨 |
 // | C-5 | ListView · ListTile | 추천 결과 목록 | 게시판 라벨 → 제목 → 가격 → 추천 이유 줄 · 조건을 고치면 위에 "조건이 바뀌었어요 — 다시 찾기" 배너 | P06 · P01 | 왜 나왔는지 상세에 안 들어가도 앎 · 결과가 옛 조건 기준임을 앎 |
 // | C-6 | FutureBuilder · LoadingView · ErrorView · EmptyView | AI 응답 상태 안내 | 찾는 중 → 오류 + 다시 시도 → 결과 없음(조건 하나 빼기 제안) | P09 | 결과 0건에서 막히지 않음 |
 // | C-7 | FilledButton · OutlinedButton | 다시 찾기 · 알림 받기 | 시트 맨 아래 한 줄 | P03 · P04 | 처음부터 다시 말하지 않아도 됨 · 검색과 알림 조건을 두 번 설정 안 함 |
@@ -210,7 +210,15 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
   void _showSnack(String message, {SnackBarAction? action}) {
     _messenger.currentState
       ?..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message), action: action));
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          action: action,
+          // 요즘 Flutter는 action이 있으면 기본으로 닫지 않는다 → 4초 뒤 사라지게
+          persist: false,
+          duration: const Duration(seconds: 4),
+        ),
+      ); // C-2 P03 · P01 되돌리기 알림은 4초 뒤 닫힘
   }
 
   /// C-5 추천 결과 → B 게시글 상세 (쌓기 — 뒤로 가면 이 시트로 돌아온다)
@@ -231,7 +239,13 @@ class _AiSearchConfirmSheetState extends State<AiSearchConfirmSheet> {
     return PopScope(
       canPop: !_edited,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _confirmClose();
+        if (!didPop) {
+          _confirmClose();
+          return;
+        }
+        // 시트가 닫히면 되돌리기 알림도 남기지 않는다 (시트 안 · 바깥 둘 다)
+        _messenger.currentState?.hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
       },
       child: Transform.translate(
         offset: Offset(0, _drag),
@@ -653,16 +667,23 @@ class _ConsultingCard extends StatelessWidget {
                   line(Icons.swap_vert, mulePurple, t), // C-4 P10
               ],
               section('근거 · 한계'),
-              if (consulting.basis.isNotEmpty)
-                Text(consulting.basis, style: text.bodySmall),
+              // 펼치면 근거 줄 하나로 끝낸다 — 아래 "참고용" 줄과 같은 말이 두 번 나오지 않게
+              Text(
+                consulting.basis.isNotEmpty
+                    ? '${consulting.basis} · 참고용'
+                    : '미리 써 둔 예시 답변이에요 · 참고용',
+                style: text.bodySmall,
+              ), // C-4 P08 · P01 근거 · 한계 한 줄
             ],
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    '미리 써 둔 예시 답변이에요 · 참고용',
-                    style: text.labelSmall?.copyWith(color: muleSubtle),
-                  ), // C-4 P01 근거 · 한계를 알림
+                  child: expanded
+                      ? const SizedBox.shrink()
+                      : Text(
+                          '미리 써 둔 예시 답변이에요 · 참고용',
+                          style: text.labelSmall?.copyWith(color: muleSubtle),
+                        ), // C-4 P01 근거 · 한계를 알림
                 ),
                 TextButton(
                   onPressed: onToggle,

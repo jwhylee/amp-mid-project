@@ -4,7 +4,7 @@
 // | 번호 | Flutter 위젯명 | 비즈니스 명칭(한글) | 정보 전달 기준 | 원칙 | 편의성 포인트 |
 // |---|---|---|---|---|---|
 // | B-1 | AppBar · BackButton | 뒤로가기 바 | 왼쪽 위에 항상 · 밝은 바탕에 진한 화살표 · 제목 | P03 · #8 #9 | 처음부터 다시 들어오지 않아도 됨 |
-// | B-2 | Image · Text | 게시글 머리 | 사진(불러오는 중 · 실패 땐 카테고리 그림) → 제목 → 가격(가장 크게) → 지역 | P08 · P02 | 스크롤 없이 핵심 확인 |
+// | B-2 | Image · Text | 게시글 머리 | 사진(불러오는 중 · 실패 땐 카테고리 그림) → 사진과 같은 폭의 카드에 제목 → 가격(가장 크게) → 지역 | P08 · P02 · P04 | 스크롤 없이 핵심 확인 |
 // | B-3 | Chip | 내 조건과 맞는 이유 | 머리 바로 아래 · C에서 왔을 때만 | P01 | 왜 추천됐는지 다시 확인 |
 // | B-4 | TabBar · TabBarView | 판단 정보 탭 | 글 내용 · AI 상태 체크 · 시세 · 사양 · 후기 (장터 글만 5탭, 다른 게시판은 글 내용 한 탭) | P07 | 시세 · 상태 · 후기를 앱 밖에서 안 찾음 |
 // | B-5 | Row · LinearProgressIndicator | 시세 범위 막대 | 최저 · 평균 · 최고 + 이 매물 위치 + 평균 세로 눈금 → 막대 아래 한 줄 판단(priceInfo.label, 굵게) | P07 | 비싼지 싼지 바로 판단 |
@@ -287,55 +287,59 @@ class _PostHeader extends StatelessWidget {
                 ), // B-2 P02
               ), // B-2 P08
               const SizedBox(height: 12),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        post.category,
-                        style: text.labelMedium?.copyWith(color: mulePurple),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        post.title,
-                        style: text.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
+              // 사진 · 탭 줄과 같은 폭으로 꽉 채운다 (좌우 여백 16 동일)
+              SizedBox(
+                width: double.infinity,
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          post.category,
+                          style: text.labelMedium?.copyWith(color: mulePurple),
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        formatWon(post.price),
-                        style: text.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                        const SizedBox(height: 2),
+                        Text(
+                          post.title,
+                          style: text.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ), // B-2 P08 가격 가장 크게
-                      const SizedBox(height: 6),
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.place_outlined,
-                            size: 16,
-                            color: muleSubtle,
+                        const SizedBox(height: 6),
+                        Text(
+                          formatWon(post.price),
+                          style: text.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(width: 4),
-                          Text(post.region, style: grey),
-                          const SizedBox(width: 12),
-                          const Icon(
-                            Icons.schedule,
-                            size: 16,
-                            color: muleSubtle,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(formatDate(post.createdAt), style: grey),
-                        ],
-                      ),
-                    ],
+                        ), // B-2 P08 가격 가장 크게
+                        const SizedBox(height: 6),
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.place_outlined,
+                              size: 16,
+                              color: muleSubtle,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(post.region, style: grey),
+                            const SizedBox(width: 12),
+                            const Icon(
+                              Icons.schedule,
+                              size: 16,
+                              color: muleSubtle,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(formatDate(post.createdAt), style: grey),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+              ), // B-2 P04 · P08 사진과 같은 폭
             ],
           ),
         ),

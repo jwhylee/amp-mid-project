@@ -620,6 +620,7 @@ void main() {
     expect(find.text('예산 60만 원'), findsOneWidget); // ① 목적 요약
     expect(find.textContaining('1순위 · '), findsOneWidget); // ② 1순위 한 줄
     expect(find.text('사기 전 확인할 것'), findsNothing); // 접힘
+    expect(find.text('미리 써 둔 예시 답변이에요 · 참고용'), findsOneWidget); // 접힘 한 줄
 
     await tester.tap(find.text('자세히 보기'));
     await tester.pumpAndSettle();
@@ -627,6 +628,9 @@ void main() {
     expect(find.text('잭 소켓 상태 물어보기'), findsOneWidget); // ④
     expect(find.text('4만 원 더 쓸 수 있다면 → 텔레캐스터'), findsOneWidget); // ⑤
     expect(find.textContaining('시세 · 후기를 바탕으로'), findsOneWidget); // ⑥
+    // 펼치면 근거 줄 하나만 — "예시 답변이에요"가 두 번 나오지 않음
+    expect(find.textContaining('예시 답변이에요'), findsOneWidget);
+    expect(find.textContaining('예시 답변이에요 · 참고용'), findsOneWidget);
 
     await tester.tap(find.text('재팬 텔레캐스터')); // ③ 비교표 → B
     await tester.pumpAndSettle();
@@ -660,6 +664,10 @@ void main() {
     await tester.tap(find.byTooltip('조건 빼기').first);
     await tester.pumpAndSettle();
     expect(find.text('조건이 바뀌었어요 — 다시 찾기'), findsOneWidget); // C-5 배너
+    expect(find.textContaining('조건을 뺐어요'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5)); // 되돌리기 알림은 4초 뒤 닫힘
+    await tester.pumpAndSettle();
+    expect(find.textContaining('조건을 뺐어요'), findsNothing);
 
     await tester.tap(find.byTooltip('닫기'));
     await tester.pumpAndSettle();
@@ -742,6 +750,17 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.widgetWithText(AppBar, '장터'), findsOneWidget); // B-1 제목
     expect(find.byType(Tab), findsNWidgets(5)); // B-4
+    // B-2 제목 · 가격 카드가 사진과 같은 폭
+    final photoWidth = tester.getSize(find.byType(PostImage).first).width;
+    final cardWidth = tester
+        .getSize(
+          find.ancestor(
+            of: find.text(_posts.first.title),
+            matching: find.byType(Card),
+          ),
+        )
+        .width;
+    expect(cardWidth, photoWidth);
 
     await tester.tap(find.text('AI 상태 체크'));
     await tester.pumpAndSettle();
