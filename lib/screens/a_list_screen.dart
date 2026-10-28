@@ -7,7 +7,7 @@
 // | A-2 | TextField + IconButton | AI 조건 입력창 | 헤더 안 흰 입력창 · 예시 문장 힌트 · 쓴 글이 있으면 지우기(X) · 비어 있으면 보내기 꺼짐 | P06 · P05 · P03 · 키워드 대신 문장 · 빈 문장 막기 · 한 번에 지우기 | 키워드를 정확히 기억 안 해도 됨 |
 // | A-3 | SingleChildScrollView(가로) · PillButton | 예시 조건 칩 | 입력창 아래 안내 한 줄 "AI에게 이렇게 물어보세요" → 가로 한 줄 · 3개 | P06 · 보고 고르기 | 첫 문장을 직접 안 써도 됨 · 알림 조건이 첫 화면에 들어옴 |
 // | A-9 | Row · InkWell | 게시판 바로가기 | 장터 · 합주실 · 레슨 · 구인 · 공연 아이콘 5개 | P02 · P07 | 누르면 게시판 메뉴의 그 게시판으로 |
-// | A-8 | PillButton · ListView(가로) · Card | 내 알림 조건 | 게시판 바로가기 아래 · 조건 알약(새 글 수는 숫자만 주황 배지) → 그 조건의 새 글 낮은 가로 카드(카테고리 그림 → 제목 → 게시판 · 가격) · "AI 검색으로 보기"(E-2와 같은 이름) | P01 · P04 · P07 · P08 · P02 | 게시판을 돌지 않아도 걸어 둔 조건의 새 글을 바로 봄 |
+// | A-8 | PillButton · ListView(가로) · Card | 내 알림 조건 | 게시판 바로가기 아래 · 조건 알약(새 글 수는 숫자만 주황 배지) → 그 조건의 새 글 낮은 가로 카드(사진 → 제목 → 게시판 · 가격) · "AI 검색으로 보기"(E-2와 같은 이름) | P01 · P04 · P07 · P08 · P02 | 게시판을 돌지 않아도 걸어 둔 조건의 새 글을 바로 봄 |
 // | A-5 | Card · ExpansionTile | 공지 접기 줄 | 기본 1줄로 접힘 · 누르면 펼침 | P08 · 공지 7줄 제거 | 새 글까지 스크롤 안 해도 됨 |
 // | A-10 | FutureBuilder · LoadingView · ErrorView · EmptyView · RefreshIndicator | 알림 조건 상태 안내 | 로딩 → 오류 + 다시 시도 → 빈 목록 안내(알림 거는 법) · 아래로 당겨 새로고침 | P09 · 복구 방법 제시 | 오류 때 앱을 껐다 켜지 않아도 됨 |
 // ────────────────────────────────────────────────────────────────────────────────────────
@@ -452,7 +452,12 @@ class _MatchCard extends StatelessWidget {
             padding: const EdgeInsets.all(8),
             child: Row(
               children: [
-                CategoryArt(match.category, width: 56, height: 56), // A-8 P02
+                PostImage(
+                  match.image,
+                  category: match.category,
+                  width: 56,
+                  height: 56,
+                ), // A-8 P02
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(

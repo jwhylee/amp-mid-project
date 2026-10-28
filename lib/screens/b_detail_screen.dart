@@ -4,11 +4,11 @@
 // | 번호 | Flutter 위젯명 | 비즈니스 명칭(한글) | 정보 전달 기준 | 원칙 | 편의성 포인트 |
 // |---|---|---|---|---|---|
 // | B-1 | AppBar · BackButton | 뒤로가기 바 | 왼쪽 위에 항상 · 밝은 바탕에 진한 화살표 · 제목 | P03 · #8 #9 | 처음부터 다시 들어오지 않아도 됨 |
-// | B-2 | CategoryArt · Text | 게시글 머리 | 카테고리 그림 → 제목 → 가격(가장 크게) → 지역 | P08 · P02 | 스크롤 없이 핵심 확인 |
+// | B-2 | Image · Text | 게시글 머리 | 사진(불러오는 중 · 실패 땐 카테고리 그림) → 제목 → 가격(가장 크게) → 지역 | P08 · P02 | 스크롤 없이 핵심 확인 |
 // | B-3 | Chip | 내 조건과 맞는 이유 | 머리 바로 아래 · C에서 왔을 때만 | P01 | 왜 추천됐는지 다시 확인 |
 // | B-4 | TabBar · TabBarView | 판단 정보 탭 | 글 내용 · AI 상태 체크 · 시세 · 사양 · 후기 (장터 글만 5탭, 다른 게시판은 글 내용 한 탭) | P07 | 시세 · 상태 · 후기를 앱 밖에서 안 찾음 |
 // | B-5 | Row · LinearProgressIndicator | 시세 범위 막대 | 최저 · 평균 · 최고 + 이 매물 위치 + 평균 세로 눈금 → 막대 아래 한 줄 판단(priceInfo.label, 굵게) | P07 | 비싼지 싼지 바로 판단 |
-// | B-6 | Stack · CategoryArt · ListTile | AI 상태 체크 | 사진 위 해당 위치(미리 쓴 x · y)에 번호 → 항목별 상태(좋음 · 보통 · 확인 필요) | P01 · #7 | 사진만 보고 혼자 상태를 짐작하지 않음 |
+// | B-6 | Stack · Image · ListTile | AI 상태 체크 | 매물 사진 위 해당 위치(미리 쓴 x · y 비율)에 번호 → 항목별 상태(좋음 · 보통 · 확인 필요) | P01 · #7 | 사진만 보고 혼자 상태를 짐작하지 않음 |
 // | B-7 | FilledButton → showDialog | 판매자 연락 버튼 | 화면 아래 고정 | P03 · 취소 가능 | 잘못 눌러도 취소 가능 |
 // | B-8 | FutureBuilder · LoadingView · ErrorView · EmptyView | 게시글 불러오기 상태 안내 | 누르자마자 상세로 넘어감 → 여는 중 → 오류 + 다시 시도 → 없는 글 안내 | P01 · P09 | 눌렀는데 반응 없는 순간이 없음 · 실패해도 그 자리에서 다시 시도 |
 // ────────────────────────────────────────────────────────────────────────────────────────
@@ -280,7 +280,11 @@ class _PostHeader extends StatelessWidget {
             children: [
               AspectRatio(
                 aspectRatio: 16 / 9,
-                child: CategoryArt(post.category, radius: 20), // B-2 P02
+                child: PostImage(
+                  post.image,
+                  category: post.category,
+                  radius: 20,
+                ), // B-2 P02
               ), // B-2 P08
               const SizedBox(height: 12),
               Card(
@@ -514,7 +518,7 @@ class ConditionCheckView extends StatelessWidget {
                 return Stack(
                   fit: StackFit.expand,
                   children: [
-                    CategoryArt(category, radius: 0),
+                    PostImage(check.image, category: category, radius: 0),
                     // 미리 쓴 비율 위치에 번호를 올린다 (번호 원 반지름 14만큼 가운데 맞춤)
                     for (final item in placed)
                       Positioned(

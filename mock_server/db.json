@@ -38,7 +38,7 @@
           "SSS 싱글"
         ]
       ],
-      "image": "https://picsum.photos/seed/mubase1/400/300",
+      "image": "https://images.unsplash.com/photo-1632413190012-4a9591b7eb91?w=800&h=600&fit=crop&q=80",
       "createdAt": "2026-10-22"
     },
     {
@@ -65,7 +65,7 @@
           "SS 싱글"
         ]
       ],
-      "image": "https://picsum.photos/seed/mubase2/400/300",
+      "image": "https://images.unsplash.com/photo-1674141828227-643c76d693a3?w=800&h=600&fit=crop&q=80",
       "createdAt": "2026-10-23"
     },
     {
@@ -88,7 +88,7 @@
           "12인치"
         ]
       ],
-      "image": "https://picsum.photos/seed/mubase3/400/300",
+      "image": "https://images.unsplash.com/photo-1616533719060-a7fc492e9299?w=800&h=600&fit=crop&q=80",
       "createdAt": "2026-10-24"
     },
     {
@@ -111,7 +111,7 @@
           "험버커 2"
         ]
       ],
-      "image": "https://picsum.photos/seed/mubase4/400/300",
+      "image": "https://images.unsplash.com/photo-1550985616-10810253b84d?w=800&h=600&fit=crop&q=80",
       "createdAt": "2026-10-25"
     },
     {
@@ -134,7 +134,7 @@
           "490R/498T"
         ]
       ],
-      "image": "https://picsum.photos/seed/mubase5/400/300",
+      "image": "https://images.unsplash.com/photo-1461784229652-c9271a46d4c4?w=800&h=600&fit=crop&q=80",
       "createdAt": "2026-10-26"
     },
     {
@@ -157,7 +157,7 @@
           "JJ 싱글"
         ]
       ],
-      "image": "https://picsum.photos/seed/mubase6/400/300",
+      "image": "https://images.unsplash.com/photo-1543060749-aa3f115aad09?w=800&h=600&fit=crop&q=80",
       "createdAt": "2026-10-27"
     },
     {
@@ -171,7 +171,7 @@
       "region": "서울 강남",
       "body": "시간당 18,000원. 주말 오전 할인.",
       "specs": [],
-      "image": "https://picsum.photos/seed/mubase7/400/300",
+      "image": "https://images.unsplash.com/photo-1481886756534-97af88ccb438?w=800&h=600&fit=crop&q=80",
       "createdAt": "2026-10-21"
     },
     {
@@ -185,7 +185,7 @@
       "region": "서울 마포",
       "body": "4인 기준, 마샬·펜더 앰프 보유.",
       "specs": [],
-      "image": "https://picsum.photos/seed/mubase8/400/300",
+      "image": "https://images.unsplash.com/photo-1535712534465-8ac1112ed593?w=800&h=600&fit=crop&q=80",
       "createdAt": "2026-10-22"
     },
     {
@@ -199,7 +199,7 @@
       "region": "서울 성동",
       "body": "악보 못 읽어도 됩니다. 월 4회.",
       "specs": [],
-      "image": "https://picsum.photos/seed/mubase9/400/300",
+      "image": "https://images.unsplash.com/photo-1462965326201-d02e4f455804?w=800&h=600&fit=crop&q=80",
       "createdAt": "2026-10-23"
     },
     {
@@ -213,7 +213,7 @@
       "region": "온라인",
       "body": "화상 레슨 가능.",
       "specs": [],
-      "image": "https://picsum.photos/seed/mubase10/400/300",
+      "image": "https://images.unsplash.com/photo-1758524944402-1903b38f848f?w=800&h=600&fit=crop&q=80",
       "createdAt": "2026-10-24"
     },
     {
@@ -227,7 +227,7 @@
       "region": "서울 마포",
       "body": "모던록 커버, 토요일 오후.",
       "specs": [],
-      "image": "https://picsum.photos/seed/mubase11/400/300",
+      "image": "https://images.unsplash.com/photo-1541002610386-cbea235ba989?w=800&h=600&fit=crop&q=80",
       "createdAt": "2026-10-25"
     },
     {
@@ -241,7 +241,7 @@
       "region": "서울 마포",
       "body": "4팀 출연, 현장 예매.",
       "specs": [],
-      "image": "https://picsum.photos/seed/mubase12/400/300",
+      "image": "https://images.unsplash.com/photo-1581417478175-a9ef18f210c2?w=800&h=600&fit=crop&q=80",
       "createdAt": "2026-10-26"
     }
   ],
@@ -631,77 +631,77 @@
     {
       "id": 1,
       "postId": 1,
-      "image": "https://picsum.photos/seed/mubase1/400/300",
+      "image": "https://images.unsplash.com/photo-1632413190012-4a9591b7eb91?w=800&h=600&fit=crop&q=80",
       "items": [
         {
           "no": 1,
           "part": "바디 스크래치",
           "level": "보통",
-          "note": "뒷판 작은 스크래치 2곳",
-          "x": 0.36,
-          "y": 0.66
+          "note": "바디 아래쪽 작은 스크래치 2곳",
+          "x": 0.35,
+          "y": 0.82
         },
         {
           "no": 2,
           "part": "프렛 마모",
           "level": "좋음",
           "note": "1–5번 프렛 마모 적음",
-          "x": 0.68,
-          "y": 0.3
+          "x": 0.55,
+          "y": 0.08
         },
         {
           "no": 3,
           "part": "잭 소켓",
           "level": "확인 필요",
           "note": "사진으로 판단 어려움 — 판매자에게 물어보기",
-          "x": 0.56,
-          "y": 0.84
+          "x": 0.61,
+          "y": 0.8
         }
       ]
     },
     {
       "id": 2,
       "postId": 2,
-      "image": "https://picsum.photos/seed/mubase2/400/300",
+      "image": "https://images.unsplash.com/photo-1674141828227-643c76d693a3?w=800&h=600&fit=crop&q=80",
       "items": [
         {
           "no": 1,
           "part": "바디",
           "level": "좋음",
           "note": "눈에 띄는 손상 없음",
-          "x": 0.36,
-          "y": 0.64
+          "x": 0.22,
+          "y": 0.4
         },
         {
           "no": 2,
           "part": "넥 휨",
           "level": "좋음",
           "note": "측면 사진상 곧음",
-          "x": 0.7,
-          "y": 0.26
+          "x": 0.58,
+          "y": 0.15
         }
       ]
     },
     {
       "id": 3,
       "postId": 4,
-      "image": "https://picsum.photos/seed/mubase4/400/300",
+      "image": "https://images.unsplash.com/photo-1550985616-10810253b84d?w=800&h=600&fit=crop&q=80",
       "items": [
         {
           "no": 1,
           "part": "바디 스크래치",
           "level": "보통",
           "note": "앞판 잔기스",
-          "x": 0.34,
-          "y": 0.62
+          "x": 0.45,
+          "y": 0.6
         },
         {
           "no": 2,
           "part": "노브",
           "level": "확인 필요",
           "note": "한 개 색이 다름 — 교체 여부 확인",
-          "x": 0.52,
-          "y": 0.78
+          "x": 0.6,
+          "y": 0.75
         }
       ]
     }
@@ -725,7 +725,7 @@
           "board": "장터",
           "title": "펜더 멕시코 플레이어 스트랫 선버스트",
           "price": 580000,
-          "image": "https://picsum.photos/seed/mubase1/400/300",
+          "image": "https://images.unsplash.com/photo-1632413190012-4a9591b7eb91?w=800&h=600&fit=crop&q=80",
           "category": "일렉기타"
         },
         {
@@ -733,7 +733,7 @@
           "board": "장터",
           "title": "펜더 재팬 텔레캐스터 TL-71 내추럴",
           "price": 640000,
-          "image": "https://picsum.photos/seed/mubase2/400/300",
+          "image": "https://images.unsplash.com/photo-1674141828227-643c76d693a3?w=800&h=600&fit=crop&q=80",
           "category": "일렉기타"
         }
       ]
@@ -755,7 +755,7 @@
           "board": "장터",
           "title": "펜더 재즈베이스 플레이어 3톤",
           "price": 690000,
-          "image": "https://picsum.photos/seed/mubase6/400/300",
+          "image": "https://images.unsplash.com/photo-1543060749-aa3f115aad09?w=800&h=600&fit=crop&q=80",
           "category": "베이스"
         }
       ]
@@ -777,7 +777,7 @@
           "board": "레슨",
           "title": "초보 베이스 1:1 레슨 (주 1회)",
           "price": 160000,
-          "image": "https://picsum.photos/seed/mubase9/400/300",
+          "image": "https://images.unsplash.com/photo-1462965326201-d02e4f455804?w=800&h=600&fit=crop&q=80",
           "category": "레슨"
         }
       ]

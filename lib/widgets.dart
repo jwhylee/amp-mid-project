@@ -250,8 +250,63 @@ class SectionTitle extends StatelessWidget {
   }
 }
 
-/// 카테고리 자리표시 그림 — 악기와 상관없는 풍경 사진 대신, 카테고리 아이콘을 그라데이션 위에 그린다 (로컬 위젯 · 새 패키지 없음)
-/// 높이가 충분하면 카테고리 이름도 함께 쓴다. 모르는 카테고리는 음표.
+/// 게시글 사진 — db.json image 주소를 그대로 Image.network로 보여 준다.
+/// 불러오는 중 · 불러오기 실패 · 주소 없음일 때만 카테고리 자리표시 그림(CategoryArt)을 대신 그린다.
+class PostImage extends StatelessWidget {
+  const PostImage(
+    this.url, {
+    super.key,
+    required this.category,
+    this.width,
+    this.height,
+    this.radius = 12,
+  });
+
+  final String url;
+
+  /// 자리표시 그림을 고를 카테고리 (예: "일렉기타")
+  final String category;
+  final double? width;
+  final double? height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final placeholder = CategoryArt(
+      category,
+      width: width,
+      height: height,
+      radius: 0,
+    );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: url.isEmpty
+            ? placeholder
+            : Image.network(
+                url,
+                width: width,
+                height: height,
+                fit: BoxFit.cover,
+                semanticLabel: '$category 사진',
+                // 받기 시작 전(첫 프레임 전)에도 빈칸 대신 자리표시 그림
+                frameBuilder: (context, child, frame, wasSynchronouslyLoaded) =>
+                    frame == null && !wasSynchronouslyLoaded
+                    ? placeholder
+                    : child,
+                loadingBuilder: (context, child, progress) =>
+                    progress == null ? child : placeholder,
+                errorBuilder: (context, error, stack) => placeholder,
+              ),
+      ),
+    );
+  }
+}
+
+/// 카테고리 자리표시 그림 — 사진을 불러오는 중이거나 실패했을 때 PostImage가 대신 그린다 (로컬 위젯 · 새 패키지 없음)
+/// 카테고리 아이콘을 그라데이션 위에, 높이가 충분하면 카테고리 이름도 함께 쓴다. 모르는 카테고리는 음표.
 class CategoryArt extends StatelessWidget {
   const CategoryArt(
     this.category, {
@@ -301,24 +356,29 @@ class CategoryArt extends StatelessWidget {
               builder: (context, box) {
                 final side = box.biggest.shortestSide;
                 final showLabel = side.isFinite && side >= 90;
+                // 어떤 크기 · 글자 설정에서도 넘치지 않게 줄여서 맞춘다
                 return Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        icon,
-                        color: Colors.white.withValues(alpha: 0.9),
-                        size: side.isFinite ? side * 0.42 : 40,
-                      ),
-                      if (showLabel)
-                        Text(
-                          category,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          icon,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          size: side.isFinite ? side * 0.42 : 40,
                         ),
-                    ],
+                        if (showLabel)
+                          Text(
+                            category,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 );
               },

@@ -700,6 +700,29 @@ void main() {
     expect(find.text('AI가 이렇게 알아들었어요'), findsNothing); // 닫힘
   });
 
+  testWidgets('PostImage: 사진 주소가 없거나 못 불러오면 카테고리 그림', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Column(
+          children: [
+            PostImage('', category: '베이스', width: 100, height: 100),
+            // 테스트 환경의 네트워크 요청은 실패(400) → errorBuilder
+            PostImage(
+              'https://example.com/none.jpg',
+              category: '앰프',
+              width: 100,
+              height: 100,
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(CategoryArt), findsNWidgets(2));
+    expect(find.text('베이스'), findsOneWidget);
+    expect(find.text('앰프'), findsOneWidget);
+  });
+
   testWidgets('B: 장터 글 5탭 · B-6 AI 상태 체크 · B-5 시세 · 후기 · B-7 취소/확인', (
     tester,
   ) async {
