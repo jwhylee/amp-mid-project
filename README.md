@@ -56,7 +56,7 @@ v2에서 바뀐 것 3개 — 원칙 카드(`docs/원칙카드.md`)의 P번호와
 | 현행 앱 | 뮬(Mule) 공식 앱 — [Google Play](https://play.google.com/store/apps/details?id=com.mule.mulePortal) · [App Store](https://apps.apple.com/kr/app/mule-%EA%B3%B5%EC%8B%9D-%EC%95%B1/id1453003081) |
 | v2 한 문장 | 원하는 조건을 대화하듯 말하면 AI가 게시판 전체에서 맞는 정보를 찾고, 예산 · 상태 · 시세로 함께 판단해 준다 |
 | 작성자 | 이재열(응용정보공학전공) · 1인 1팀 |
-| 데모 | 데모 영상 1분: [`docs/영상/demo_1min.mp4`](docs/영상/demo_1min.mp4) (TODO: 100MB가 넘으면 드라이브 링크로 바꾼다) · 원칙 클립 `docs/영상/p0x.mp4` — 촬영 순서는 [`docs/촬영계획.md`](docs/촬영계획.md) |
+| 데모 | 데모 영상 1분 · 원칙 클립 p01–p10: [Google Drive — midproj_video 폴더](https://drive.google.com/drive/folders/1oax1j1CO8nTbXLCElMQmVKgrBttjDIK4?usp=sharing) (GitHub는 100MB 제한이라 영상은 드라이브에 둠) |
 | AI 사용 | 규칙 `AGENTS.md` · 기록 `docs/prompt-log.md` · 셀프 논증 기록 `docs/셀프논증.md` · 기획 확정 태그 `v1-plan` |
 
 > 이 저장소는 **UI만 구현**합니다(중간고사 안내문 5장). 보이기는 다 동작하는 것처럼, 실제 동작(저장·로그인·결제·실제 계산)은 없습니다.
