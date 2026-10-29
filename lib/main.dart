@@ -3,7 +3,7 @@
 // ── 디자인 가이드 대응표: 화면 S — 앱 뼈대 · 하단 메뉴 (docs/디자인가이드.md 3장과 같게) ──
 // | 번호 | Flutter 위젯명 | 비즈니스 명칭(한글) | 정보 전달 기준 | 원칙 | 편의성 포인트 |
 // |---|---|---|---|---|---|
-// | S-1 | MaterialApp | MuBase v2 | 앱 이름 | — | — |
+// | S-1 | MaterialApp | MuBase | 앱 이름 | — | — |
 // | S-2 | ThemeData(theme.dart) | 브랜드 색 | 뮬 그라데이션 헤더 · 흰 둥근 카드 · 주황은 새 소식에만 | P04 · 모든 화면 같은 색 · 모양 | 어느 화면이든 같은 자리 · 같은 모양 |
 // | S-3 | NavigationBar | 하단 메뉴 | 홈 · 게시판 · 알림 · 설정 4개 · 아이콘 + 이름 | P04 · P06 · 메뉴를 보고 고르기 | 어느 메뉴에서든 한 번에 다른 메뉴로 |
 // 화면 흐름(docs/디자인가이드.md 1장과 같게):
@@ -25,7 +25,7 @@ class MidProjectApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MuBase v2', // S-1
+      title: 'MuBase', // S-1
       debugShowCheckedModeBanner: false,
       theme: buildMuleTheme(), // S-2 P04
       home: const MainShell(),
